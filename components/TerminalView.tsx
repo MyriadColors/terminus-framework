@@ -69,6 +69,12 @@ const TerminalView: React.FC<TerminalViewProps> = ({ renderPrompt, renderHistory
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
+    
+    // Focus the input element after history updates
+    const inputElement = document.getElementById('terminal-input');
+    if (inputElement) {
+      inputElement.focus();
+    }
   }, [history]);
 
   return (

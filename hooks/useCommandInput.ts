@@ -61,6 +61,13 @@ export const useCommandInput = ({
       addCommandToHistory(trimmedValue);
     }
     resetInputState();
+    
+    // Refocus the input after command submission
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 0);
   };
   
   // Calculate the inline "ghost" hint for rendering.
