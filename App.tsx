@@ -7,12 +7,13 @@ import { useTerminalStore } from './index';
 import { ThemeStyle } from './index';
 
 // You can add your own commands here by importing them from your own file.
-import { calculatorCommands } from './apps/examples/calculator';
+// Uncomment the line below to include calculator commands as an example. 
+// import { calculatorCommands } from './apps/examples/calculator';
 
 // Combine all the commands into a single array for easier access and usage.
 const allCommands = [
   ...defaultCommands,
-  ...calculatorCommands, // Here we are adding the calculator commands as an example.
+  //...calculatorCommands, // Uncomment this line to include calculator commands as an example.
   // Add your own commands here...
 ]
 

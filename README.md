@@ -108,6 +108,8 @@ terminus-framework/
    // Then pass allCommands to TerminalProvider
    ```
 
+As an exmaple we have already included the Calculator commands to demonstrate how to do it.
+
 ## Documentation
 
 To help you get the most out of Terminus, we've prepared several documentation resources:
