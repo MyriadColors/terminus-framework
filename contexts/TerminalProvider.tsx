@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { Command } from '../types';
 import { CommandRegistry } from '../services/commandRegistry';
@@ -22,29 +22,31 @@ const TerminalProvider: React.FC<TerminalProviderProps> = ({
   initialTheme = 'default',
   themes = {},
 }) => {
-  const [{ store, registry }] = useState(() => {
-    const registry = new CommandRegistry();
-    const store = createTerminalStore({
-        registry,
-        initialTheme,
-        customThemes: themes,
-        welcomeMessage,
-    });
-    return { store, registry };
-  });
+  const [registry] = useState(() => new CommandRegistry());
+  const [store] = useState(() => createTerminalStore({
+      registry,
+      initialTheme,
+      customThemes: themes,
+      welcomeMessage,
+  }));
 
-  // Effect to update commands when the prop changes
+  // Register initial commands
   useEffect(() => {
-    registry.clear();
-    commands.forEach(cmd => registry.register(cmd));
+      commands.forEach(cmd => registry.register(cmd));
   }, [commands, registry]);
-  
+
+  const registerCommand = useCallback((command: Command) => {
+      registry.register(command);
+      // Optionally, if you want to trigger a re-render or update the store with the new command list
+      // store.getState().setCommands(registry.getAll()); // Assuming you add a setCommands to your store
+  }, [registry]);
+
   // Effect to update welcome message when prop changes
   useEffect(() => {
       store.getState().setWelcomeMessage(welcomeMessage);
   }, [welcomeMessage, store]);
   
-  const contextValue = { store, registry };
+  const contextValue = { store, registry, registerCommand };
 
   return (
     <TerminalContextProvider value={contextValue}>

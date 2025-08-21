@@ -1,0 +1,10 @@
+export { default as TerminalProvider } from './contexts/TerminalProvider';
+export { TerminalContextProvider, useTerminalStore, useCommandRegistry } from './contexts/TerminalContext';
+export { default as TerminalView } from './components/TerminalView';
+export { useTerminal } from './hooks/useTerminal';
+export * from './types';
+export * from './styles/themes';
+export { CommandRegistry } from './services/commandRegistry';
+export { parseCommand } from './services/commandParser';
+export { getSuggestions as autocomplete } from './services/autocompleteService';
+export { createTerminalStore } from './store/terminalStore';

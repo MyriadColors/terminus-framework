@@ -24,12 +24,13 @@ export interface CommandContext {
   availableThemes: string[];
   getAllCommands: () => Command[];
   getCommand: (name: string) => Command | undefined;
+  setCurrentPath: (path: string) => void;
 }
 
 export type CommandHandler = (
     args: Record<string, any>,
     context: CommandContext
-) => React.ReactNode;
+) => CommandResult | Promise<CommandResult>;
 
 export interface Command {
   name: string;
@@ -39,8 +40,21 @@ export interface Command {
   aliases?: string[];
 }
 
+export type CommandResult = {
+  success: true;
+  output: React.ReactNode; // Allow string or rich components
+} | {
+  success: false;
+  error: React.ReactNode; // Allow string or rich components
+};
+
+export function isCommandResult(obj: any): obj is CommandResult {
+  return obj && typeof obj === 'object' && 'success' in obj;
+}
+
 export interface HistoryItem {
   id: number;
   command: string;
   output: React.ReactNode;
+  type: 'standard' | 'error';
 }

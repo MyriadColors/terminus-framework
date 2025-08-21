@@ -1,4 +1,3 @@
-import React from 'react';
 import { Command, CommandArg, CommandContext } from '../types';
 
 const renderCommandHelp = (cmd: Command, context: CommandContext) => {
@@ -65,12 +64,12 @@ export const helpCommand: Command = {
     if (commandName) {
         const commandToHelp = context.getCommand(commandName as string);
         if (commandToHelp) {
-            return renderCommandHelp(commandToHelp, context);
+            return { success: true, output: renderCommandHelp(commandToHelp, context) };
         } else {
-            return <p className={context.theme.textError}>Command '{commandName}' not found.</p>;
+            return { success: false, error: <p className={context.theme.textError}>Command '{commandName}' not found.</p> };
         }
     }
 
-    return renderAllCommands(context);
+    return { success: true, output: renderAllCommands(context) };
   },
 };

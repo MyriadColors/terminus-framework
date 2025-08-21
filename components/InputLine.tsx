@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useCommandInput } from '../hooks/useCommandInput';
 import { useTerminalStore } from '../contexts/TerminalContext';
@@ -8,13 +6,15 @@ import { ThemeStyle } from '../styles/themes';
 interface InputLineProps {
   onSubmit: (command: string) => void;
   addCommandToHistory: (command: string) => void;
+  renderPrompt: () => React.ReactNode;
 }
 
-const InputLine: React.FC<InputLineProps> = ({ onSubmit, addCommandToHistory }) => {
+const InputLine: React.FC<InputLineProps> = ({ onSubmit, addCommandToHistory, renderPrompt }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const measurementRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
+  const isBusy = useTerminalStore((state) => state.isBusy);
 
   // This function reads from the DOM to calculate and imperatively set the cursor position.
   // It remains in the component as it's tightly coupled to the component's refs and DOM structure.
@@ -58,7 +58,7 @@ const InputLine: React.FC<InputLineProps> = ({ onSubmit, addCommandToHistory }) 
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center w-full">
-      <label htmlFor="terminal-input" className={`${theme.promptSymbol} mr-2`}>$</label>
+      {renderPrompt()}
       <div className="relative flex-1 h-5">
         <span
           ref={measurementRef}
@@ -81,6 +81,7 @@ const InputLine: React.FC<InputLineProps> = ({ onSubmit, addCommandToHistory }) 
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onSelect={updateCursorPosition}
+          disabled={isBusy}
           // The input's own text is made transparent to see the visual layer underneath
           className="bg-transparent border-none text-transparent focus:outline-none w-full absolute inset-0 caret-transparent"
           autoComplete="off"

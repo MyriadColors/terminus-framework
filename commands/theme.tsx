@@ -1,6 +1,4 @@
-
-import React from 'react';
-import { Command, ThemeStyle } from '../types';
+import { Command } from '../types';
 
 export const themeCommand: Command = {
   name: 'theme',
@@ -25,35 +23,38 @@ export const themeCommand: Command = {
     const subCommand = originalSubCommand || 'list';
 
     if (subCommand === 'list') {
-      return (
-        <div>
-          <p className={theme.textSecondary}>Available Themes:</p>
-          <ul className="list-disc list-inside">
-            {availableThemes.map((name) => (
-              <li key={name}>
-                <span className={theme.textPrimary}>{name}</span>
-                {theme.name === name && <span className={theme.textFaded}> (current)</span>}
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
+      return {
+        success: true,
+        output: (
+          <div>
+            <p className={theme.textSecondary}>Available Themes:</p>
+            <ul className="list-disc list-inside">
+              {availableThemes.map((name) => (
+                <li key={name}>
+                  <span className={theme.textPrimary}>{name}</span>
+                  {theme.name === name && <span className={theme.textFaded}> (current)</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ),
+      };
     }
     
     if (subCommand === 'set') {
       if (!themeName) {
-        return <p className={theme.textError}>Error: Missing theme name. Usage: theme set &lt;theme_name&gt;</p>;
+        return { success: false, error: <p className={theme.textError}>Error: Missing theme name. Usage: theme set &lt;theme_name&gt;</p> };
       }
       
       const newTheme = setTheme(themeName);
 
       if (newTheme) {
-        return <p>Theme changed to '<span className={newTheme.textPrimary}>{themeName}</span>'.</p>;
+        return { success: true, output: <p>Theme changed to '<span className={newTheme.textPrimary}>{themeName}</span>'.</p> };
       } else {
-        return <p className={theme.textError}>Error: Theme '{themeName}' not found. Use 'theme list' to see available themes.</p>;
+        return { success: false, error: <p className={theme.textError}>Error: Theme '{themeName}' not found. Use 'theme list' to see available themes.</p> };
       }
     }
 
-    return <p className={theme.textError}>Invalid subcommand '{originalSubCommand}'. Use 'list' or 'set'.</p>;
+    return { success: false, error: <p className={theme.textError}>Invalid subcommand '{originalSubCommand}'. Use 'list' or 'set'.</p> };
   },
 };

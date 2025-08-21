@@ -1,4 +1,3 @@
-import React from 'react';
 import { Command } from '../types';
 
 export const echoCommand: Command = {
@@ -29,6 +28,6 @@ export const echoCommand: Command = {
       textToEcho = textToEcho.toUpperCase();
     }
     
-    return <p>{textToEcho}</p>;
+    return { success: true, output: <p>{textToEcho}</p> };
   }
 };

@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import React from 'react';
-import { HistoryItem, Command, CommandContext } from '../types';
+import { HistoryItem, Command, CommandContext, CommandResult, isCommandResult } from '../types';
 import { CommandRegistry } from '../services/commandRegistry';
 import { parseCommand } from '../services/commandParser';
 import { ThemeStyle, defaultThemes } from '../styles/themes';
@@ -10,6 +10,8 @@ interface TerminalState {
   history: HistoryItem[];
   commandHistory: string[];
   welcomeMessage?: React.ReactNode;
+  currentPath: string;
+  isBusy: boolean;
 }
 
 interface InputState {
@@ -25,11 +27,13 @@ interface ThemeState {
 }
 
 interface TerminalActions {
-  addHistoryItem: (command: string, output: React.ReactNode) => void;
+  addHistoryItem: (command: string, output: React.ReactNode, type?: 'standard' | 'error') => void;
   clearHistory: () => void;
   addCommandToHistory: (command: string) => void;
   submitCommand: (commandStr: string) => void;
   setWelcomeMessage: (message?: React.ReactNode) => void;
+  registerCommand: (command: Command) => void;
+  setCurrentPath: (path: string) => void;
 }
 
 interface InputActions {
@@ -41,7 +45,7 @@ interface InputActions {
 }
 
 interface ThemeActions {
-    setThemeName: (name: string) => ThemeStyle | undefined;
+    setTheme: (themeNameOrObject: string | ThemeStyle) => ThemeStyle | undefined;
 }
 
 export type FullStoreState = TerminalState & InputState & ThemeState & TerminalActions & InputActions & ThemeActions;
@@ -63,6 +67,8 @@ export const createTerminalStore = ({
   history: [],
   commandHistory: [],
   welcomeMessage,
+  currentPath: '~',
+  isBusy: false,
 
   // Input State
   inputValue: '',
@@ -75,13 +81,13 @@ export const createTerminalStore = ({
   themes: { ...defaultThemes, ...customThemes },
 
   // Terminal Actions
-  addHistoryItem: (command, output) => {
+  addHistoryItem: (command, output, type = 'standard') => {
     // Prevent adding session_start command to the visible output lines multiple times
     if (command === 'session_start' && get().history.some(item => item.command === 'session_start')) {
         return;
     }
     set((state) => ({
-      history: [...state.history, { id: state.history.length, command, output }],
+      history: [...state.history, { id: state.history.length, command, output, type }],
     }));
   },
 
@@ -95,7 +101,7 @@ export const createTerminalStore = ({
     }
   },
 
-  submitCommand: (commandStr) => {
+  submitCommand: async (commandStr) => {
     const commandName = commandStr.trim().split(/\s+/)[0] || '';
     
     if (!commandName) {
@@ -106,33 +112,50 @@ export const createTerminalStore = ({
     const state = get();
     const theme = state.themes[state.themeName] || state.themes.default;
 
-    if (command) {
-      try {
+    set({ isBusy: true });
+    try {
+      if (command) {
         const availableThemes = Object.keys(get().themes);
         const context: CommandContext = { 
             clear: get().clearHistory, 
             theme: theme, 
             availableThemes,
-            setTheme: get().setThemeName,
+            setTheme: get().setTheme,
             getAllCommands: (): Command[] => registry.getAll(),
             getCommand: (name: string): Command | undefined => registry.get(name),
+            setCurrentPath: get().setCurrentPath,
         };
 
         const args = parseCommand(commandStr, command.args);
-        const output = command.handler(args, context);
+        const result = await Promise.resolve(command.handler(args, context));
         
-        if (output !== undefined && output !== null) {
-            get().addHistoryItem(commandStr, output);
+        if (isCommandResult(result)) {
+            if (result.success) {
+                get().addHistoryItem(commandStr, result.output, 'standard');
+            } else {
+                get().addHistoryItem(commandStr, (result as { success: false; error: React.ReactNode; }).error, 'error');
+            }
+        } else if (result !== undefined && result !== null) {
+            // Fallback for commands that might still return React.ReactNode directly
+            get().addHistoryItem(commandStr, result as React.ReactNode, 'standard');
         }
-      } catch (error) {
-        get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Error executing command: ${(error as Error).message}`));
+      } else {
+        get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Command not found: '${commandName}'. Type 'help' for a list of commands.`), 'error');
       }
-    } else {
-      get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Command not found: '${commandName}'. Type 'help' for a list of commands.`));
+    } catch (error) {
+      get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Error executing command: ${(error as Error).message}`), 'error');
+    } finally {
+      set({ isBusy: false });
     }
   },
   
   setWelcomeMessage: (message) => set({ welcomeMessage: message }),
+
+  registerCommand: (command) => {
+    registry.register(command);
+  },
+
+  setCurrentPath: (path) => set({ currentPath: path }),
 
   // Input Actions
   setInputValue: (value) => set({ inputValue: value }),
@@ -142,11 +165,18 @@ export const createTerminalStore = ({
   resetInputState: () => set({ inputValue: '', historyIndex: -1, suggestions: [], suggestionIndex: -1 }),
   
   // Theme Actions
-  setThemeName: (name: string): ThemeStyle | undefined => {
+  setTheme: (themeNameOrObject: string | ThemeStyle): ThemeStyle | undefined => {
     const themes = get().themes;
-    if (themes[name]) {
-        set({ themeName: name });
-        return themes[name];
+    if (typeof themeNameOrObject === 'string') {
+        if (themes[themeNameOrObject]) {
+            set({ themeName: themeNameOrObject });
+            return themes[themeNameOrObject];
+        }
+    } else {
+        const newThemeName = themeNameOrObject.name || 'custom';
+        const newThemes = { ...themes, [newThemeName]: { ...themes.default, ...themeNameOrObject } };
+        set({ themes: newThemes, themeName: newThemeName });
+        return newThemes[newThemeName];
     }
     return undefined;
   },

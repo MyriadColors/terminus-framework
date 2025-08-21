@@ -1,10 +1,10 @@
 
 import React from 'react';
-import TerminalView from './components/TerminalView';
-import TerminalProvider from './contexts/TerminalProvider';
+import { TerminalView } from './index';
+import { TerminalProvider } from './index';
 import { defaultCommands } from './commands';
-import { useTerminalStore } from './contexts/TerminalContext';
-import { ThemeStyle } from './styles/themes';
+import { useTerminalStore } from './index';
+import { ThemeStyle } from './index';
 
 const WelcomeMessage = () => {
   const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);

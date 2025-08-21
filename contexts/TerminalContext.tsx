@@ -2,17 +2,19 @@ import React, { createContext, useContext } from 'react';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import type { FullStoreState } from '../store/terminalStore';
 import { CommandRegistry } from '../services/commandRegistry';
+import { Command } from '@/types';
 
 export interface TerminalContextValue {
   store: UseBoundStore<StoreApi<FullStoreState>>;
   registry: CommandRegistry;
+  registerCommand: (command: Command) => void;
 }
 
 const TerminalContext = createContext<TerminalContextValue | null>(null);
 
 export const TerminalContextProvider = TerminalContext.Provider;
 
-const useTerminalContext = (): TerminalContextValue => {
+export const useTerminalContext = (): TerminalContextValue => {
   const context = useContext(TerminalContext);
   if (!context) {
     throw new Error('This component must be used within a TerminalContextProvider');
