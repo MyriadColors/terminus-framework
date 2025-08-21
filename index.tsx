@@ -1,21 +1,7 @@
-/**
- * Terminus TUI Framework - Public API
- */
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
 
-// Core Components for rendering the terminal
-export { default as TerminalProvider } from './contexts/TerminalProvider';
-export { default as TerminalView } from './components/TerminalView';
-
-// Main hook for programmatic control over the terminal
-export { useTerminal } from './hooks/useTerminal';
-export type { UseTerminalResult, TerminalState, TerminalActions } from './hooks/useTerminal';
-
-// Public types for creating commands and custom themes
-export type { 
-    Command, 
-    CommandArg, 
-    CommandHandler,
-    CommandContext,
-    HistoryItem, 
-    ThemeStyle 
-} from './types';
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+root.render(<App />);
