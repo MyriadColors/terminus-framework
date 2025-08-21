@@ -24,6 +24,7 @@ export const addCommand: Command = {
   name: 'add',
   aliases: ['+'],
   description: 'Adds multiple numbers together (prefix notation)',
+  category: 'Calculator',
   handler: (args, context): CommandResult => {
     const operands = args._;
     
@@ -56,6 +57,7 @@ export const subtractCommand: Command = {
   name: 'sub',
   aliases: ['-'],
   description: 'Subtracts multiple numbers from the first number (prefix notation)',
+  category: 'Calculator',
   handler: (args, context): CommandResult => {
     const operands = args._;
     
@@ -90,6 +92,7 @@ export const multiplyCommand: Command = {
   name: 'mul',
   aliases: ['*'],
   description: 'Multiplies multiple numbers together (prefix notation)',
+  category: 'Calculator',
   handler: (args, context): CommandResult => {
     const operands = args._;
     
@@ -122,6 +125,7 @@ export const divideCommand: Command = {
   name: 'div',
   aliases: ['/'],
   description: 'Divides the first number by subsequent numbers (prefix notation)',
+  category: 'Calculator',
   handler: (args, context): CommandResult => {
     const operands = args._;
     

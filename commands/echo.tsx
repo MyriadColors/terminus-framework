@@ -1,33 +1,35 @@
-import { Command } from '../types';
+import { Command, CommandArg, CommandResult } from '../types';
 
 export const echoCommand: Command = {
   name: 'echo',
-  description: 'Prints the given text back to the terminal.',
-  aliases: ['print', 'say'],
+  description: 'Displays the specified text',
+  category: 'System',
   args: [
     {
       name: 'text',
-      description: 'One or more strings to be printed.',
+      description: 'The text to display',
       required: true,
-      variadic: true,
+      variadic: true
     },
     {
       name: 'uppercase',
-      description: 'Print the text in uppercase.',
-      required: false,
       alias: 'u',
-      type: 'boolean',
+      description: 'Convert text to uppercase',
+      required: false,
+      type: 'boolean'
     }
-  ],
-  handler: (args, context) => {
-    // The parser puts positional arguments in the `_` property.
-    let textToEcho = (args._ as string[])?.join(' ') || '';
-
-    // The parser now resolves aliases, so we only need to check for 'uppercase'
-    if (args.uppercase) {
-      textToEcho = textToEcho.toUpperCase();
+  ] as CommandArg[],
+  handler: (args, context): CommandResult => {
+    let text = args._?.join(' ') || '';
+    
+    // Convert to uppercase if the flag is present
+    if (args.uppercase || args.u) {
+      text = text.toUpperCase();
     }
     
-    return { success: true, output: context.printLine(textToEcho) };
+    return { 
+      success: true, 
+      output: context.printLine(text) 
+    };
   }
 };

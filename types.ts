@@ -77,6 +77,7 @@ export interface Command {
   args?: CommandArg[];
   handler: CommandHandler;
   aliases?: string[];
+  category?: string;
 }
 
 export type CommandResult = {
