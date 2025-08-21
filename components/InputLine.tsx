@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useCommandInput } from '../hooks/useCommandInput';
-import { useTerminalStore } from '../store/terminalStore';
+import { useTerminalStore } from '../contexts/TerminalContext';
 import { ThemeStyle } from '../styles/themes';
 
 interface InputLineProps {

@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import React from 'react';
 import { HistoryItem, TerminalContext } from '../types';
-import { commandRegistry } from '../services/commandRegistry';
+import { CommandRegistry } from '../services/commandRegistry';
 import { parseCommand } from '../services/commandParser';
 import { ThemeStyle, defaultThemes } from '../styles/themes';
 
@@ -40,11 +40,15 @@ interface InputActions {
 
 interface ThemeActions {
     setThemeName: (name: string) => ThemeStyle | undefined;
+    _setThemeNameInternal: (name: string) => void;
 }
 
-type FullStoreState = TerminalState & InputState & ThemeState & TerminalActions & InputActions & ThemeActions;
+export type FullStoreState = TerminalState & InputState & ThemeState & TerminalActions & InputActions & ThemeActions;
 
-export const useTerminalStore = create<FullStoreState>((set, get) => ({
+export const createTerminalStore = (
+  registry: CommandRegistry,
+  onThemeChange: (name: string) => void
+) => create<FullStoreState>((set, get) => ({
   // Terminal State
   history: [],
   commandHistory: [],
@@ -87,7 +91,7 @@ export const useTerminalStore = create<FullStoreState>((set, get) => ({
         return;
     }
 
-    const command = commandRegistry.get(commandName);
+    const command = registry.get(commandName);
     const state = get();
     const theme = state.themes[state.themeName] || state.themes.default;
 
@@ -99,6 +103,7 @@ export const useTerminalStore = create<FullStoreState>((set, get) => ({
             theme: theme, 
             availableThemes,
             setTheme: get().setThemeName,
+            registry: registry,
         };
 
         const args = parseCommand(commandStr, command.args);
@@ -127,8 +132,17 @@ export const useTerminalStore = create<FullStoreState>((set, get) => ({
     const themes = get().themes;
     if (themes[name]) {
         set({ themeName: name });
+        onThemeChange(name); // Notify the parent component
         return themes[name];
     }
     return undefined;
   },
+
+  // Used to sync theme from parent prop without triggering callback loop
+  _setThemeNameInternal: (name: string) => {
+    const themes = get().themes;
+    if (themes[name]) {
+        set({ themeName: name });
+    }
+  }
 }));

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ThemeStyle } from './styles/themes';
+import { CommandRegistry } from './services/commandRegistry';
 
 export type { ThemeStyle };
 
@@ -18,6 +19,7 @@ export interface TerminalContext {
   theme: ThemeStyle;
   setTheme: (themeName: string) => ThemeStyle | undefined;
   availableThemes: string[];
+  registry: CommandRegistry;
 }
 
 export type CommandHandler = (

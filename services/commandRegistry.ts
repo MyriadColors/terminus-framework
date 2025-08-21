@@ -1,6 +1,6 @@
 import { Command } from '../types';
 
-class CommandRegistry {
+export class CommandRegistry {
   private commands: Map<string, Command> = new Map();
 
   public register(command: Command): void {
@@ -27,5 +27,3 @@ class CommandRegistry {
     this.commands.clear();
   }
 }
-
-export const commandRegistry = new CommandRegistry();

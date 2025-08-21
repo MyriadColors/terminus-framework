@@ -1,6 +1,5 @@
 import React from 'react';
 import { Command, CommandArg, TerminalContext } from '../types';
-import { commandRegistry } from '../services/commandRegistry';
 
 const renderCommandHelp = (cmd: Command, context: TerminalContext) => {
     const { theme } = context;
@@ -37,8 +36,8 @@ const renderCommandHelp = (cmd: Command, context: TerminalContext) => {
 }
 
 const renderAllCommands = (context: TerminalContext) => {
-    const { theme } = context;
-    const commands = commandRegistry.getAll()
+    const { theme, registry } = context;
+    const commands = registry.getAll()
       .sort((a, b) => a.name.localeCompare(b.name));
     return (
         <div>
@@ -63,7 +62,7 @@ export const helpCommand: Command = {
     const commandName = args._?.[0];
 
     if (commandName) {
-        const commandToHelp = commandRegistry.get(commandName as string);
+        const commandToHelp = context.registry.get(commandName as string);
         if (commandToHelp) {
             return renderCommandHelp(commandToHelp, context);
         } else {

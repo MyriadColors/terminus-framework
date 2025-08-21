@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import Terminal from './components/Terminal';
 import { defaultCommands } from './commands';
-import { useTerminalStore } from './store/terminalStore';
-import { ThemeStyle } from './styles/themes';
+import { useTerminalStore } from './contexts/TerminalContext';
+import { ThemeStyle, defaultThemes } from './styles/themes';
 
 const WelcomeMessage = () => {
   const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
@@ -20,14 +20,24 @@ const WelcomeMessage = () => {
 
 
 const App: React.FC = () => {
-  const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
+  const [themeName, setThemeName] = useState('default');
+  const theme: ThemeStyle = defaultThemes[themeName] || defaultThemes.default;
+
+  const handleThemeChange = useCallback((newName: string) => {
+    setThemeName(newName);
+  }, []);
 
   return (
     <main className={`font-mono ${theme.appBg} ${theme.appText} min-h-screen transition-colors duration-300`}>
       <div className="container mx-auto p-4">
         <h1 className={`text-2xl md:text-4xl ${theme.header} font-bold mb-4`}>Terminus</h1>
         <p className={`${theme.textFaded} mb-6`}>A React-based framework for interactive terminal applications. Type 'help' to see available commands.</p>
-        <Terminal commands={defaultCommands} welcomeMessage={<WelcomeMessage />} />
+        <Terminal 
+          commands={defaultCommands} 
+          welcomeMessage={<WelcomeMessage />} 
+          themeName={themeName}
+          onThemeChange={handleThemeChange}
+        />
       </div>
     </main>
   );

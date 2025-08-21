@@ -1,7 +1,7 @@
 
 import { RefObject } from 'react';
 import { getSuggestions } from '../services/autocompleteService';
-import { useTerminalStore } from '../store/terminalStore';
+import { useTerminalStore, useCommandRegistry } from '../contexts/TerminalContext';
 
 interface UseCommandInputProps {
   onSubmit: (command: string) => void;
@@ -16,6 +16,7 @@ export const useCommandInput = ({
   inputRef,
   updateCursorPosition
 }: UseCommandInputProps) => {
+  const registry = useCommandRegistry();
   const {
     inputValue: value,
     historyIndex,
@@ -27,7 +28,18 @@ export const useCommandInput = ({
     setSuggestions,
     setSuggestionIndex,
     resetInputState,
-  } = useTerminalStore();
+  } = useTerminalStore((state) => ({
+    inputValue: state.inputValue,
+    historyIndex: state.historyIndex,
+    suggestions: state.suggestions,
+    suggestionIndex: state.suggestionIndex,
+    commandHistory: state.commandHistory,
+    setInputValue: state.setInputValue,
+    setHistoryIndex: state.setHistoryIndex,
+    setSuggestions: state.setSuggestions,
+    setSuggestionIndex: state.setSuggestionIndex,
+    resetInputState: state.resetInputState,
+  }));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -35,7 +47,7 @@ export const useCommandInput = ({
     setSuggestionIndex(-1); // Reset autocomplete cycling
 
     if (newValue) {
-      setSuggestions(getSuggestions(newValue));
+      setSuggestions(getSuggestions(newValue, registry));
     } else {
       setSuggestions([]);
     }

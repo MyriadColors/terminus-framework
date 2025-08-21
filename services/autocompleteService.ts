@@ -1,11 +1,12 @@
-import { commandRegistry } from './commandRegistry';
+import { CommandRegistry } from './commandRegistry';
 
 /**
  * Provides autocomplete suggestions based on the current input string.
  * @param currentInput The full string from the input line.
+ * @param registry The command registry instance for the current terminal.
  * @returns An array of suggestion strings.
  */
-export const getSuggestions = (currentInput: string): string[] => {
+export const getSuggestions = (currentInput: string, registry: CommandRegistry): string[] => {
   const value = currentInput.trimStart();
   const parts = value.split(/\s+/);
   
@@ -20,7 +21,7 @@ export const getSuggestions = (currentInput: string): string[] => {
   const isTypingCommand = parts.length === 1 && !value.endsWith(' ');
   if (isTypingCommand) {
     const commandPart = parts[0];
-    const allCommands = commandRegistry.getAll();
+    const allCommands = registry.getAll();
     return allCommands
       .filter(cmd => cmd.name.startsWith(commandPart))
       .map(cmd => cmd.name)
@@ -30,7 +31,7 @@ export const getSuggestions = (currentInput: string): string[] => {
   // Scenario 2: Completing an argument/flag.
   // The user has typed a command and a space, and is now typing another word.
   const commandName = parts[0];
-  const command = commandRegistry.get(commandName);
+  const command = registry.get(commandName);
   
   // If the command doesn't exist or has no defined args, no suggestions.
   if (!command || !command.args) {

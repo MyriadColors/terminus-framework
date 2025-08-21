@@ -1,10 +1,12 @@
 
-import React, { useRef, useEffect } from 'react';
-import { useTerminalStore } from '../store/terminalStore';
-import InputLine from './InputLine';
+import React, { useRef, useEffect, useState } from 'react';
 import { HistoryItem, Command } from '../types';
-import { commandRegistry } from '../services/commandRegistry';
+import { CommandRegistry } from '../services/commandRegistry';
 import { ThemeStyle } from '../styles/themes';
+import { TerminalContextProvider, useTerminalStore } from '../contexts/TerminalContext';
+import { createTerminalStore, FullStoreState } from '../store/terminalStore';
+import type { StoreApi, UseBoundStore } from 'zustand';
+import InputLine from './InputLine';
 
 const OutputLine: React.FC<{ item: HistoryItem }> = ({ item }) => {
   const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
@@ -19,27 +21,18 @@ const OutputLine: React.FC<{ item: HistoryItem }> = ({ item }) => {
   );
 };
 
-interface TerminalProps {
-  commands: Command[];
-  welcomeMessage?: React.ReactNode;
-}
-
-const Terminal: React.FC<TerminalProps> = ({ commands, welcomeMessage }) => {
-  const { history, submitCommand, addHistoryItem } = useTerminalStore();
-  const addCommandToHistory = useTerminalStore((state) => state.addCommandToHistory);
-  const theme = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
+const TerminalDisplay: React.FC<{ welcomeMessage?: React.ReactNode }> = ({ welcomeMessage }) => {
+  const { history, addHistoryItem, submitCommand, addCommandToHistory, theme } = useTerminalStore((state) => ({
+    history: state.history,
+    addHistoryItem: state.addHistoryItem,
+    submitCommand: state.submitCommand,
+    addCommandToHistory: state.addCommandToHistory,
+    theme: state.themes[state.themeName] || state.themes.default,
+  }));
   
   const terminalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    commandRegistry.clear();
-    commands.forEach(cmd => commandRegistry.register(cmd));
-    return () => commandRegistry.clear();
-  }, [commands]);
-
-  useEffect(() => {
-    // Show welcome message only if history is empty.
-    // This prevents it from reappearing on hot-reloads or other re-renders.
     if (welcomeMessage && history.length === 0) {
       addHistoryItem('session_start', welcomeMessage);
     }
@@ -65,6 +58,47 @@ const Terminal: React.FC<TerminalProps> = ({ commands, welcomeMessage }) => {
         addCommandToHistory={addCommandToHistory}
       />
     </div>
+  );
+};
+
+
+interface TerminalProps {
+  commands: Command[];
+  welcomeMessage?: React.ReactNode;
+  themeName?: string;
+  onThemeChange?: (name: string) => void;
+}
+
+const Terminal: React.FC<TerminalProps> = ({ 
+  commands, 
+  welcomeMessage,
+  themeName = 'default',
+  onThemeChange = () => {}
+}) => {
+  const [{ store, registry }] = useState(() => {
+    const registry = new CommandRegistry();
+    const store = createTerminalStore(registry, onThemeChange);
+    return { store, registry };
+  });
+
+  useEffect(() => {
+    registry.clear();
+    commands.forEach(cmd => registry.register(cmd));
+  }, [commands, registry]);
+
+  useEffect(() => {
+    const internalThemeName = store.getState().themeName;
+    if (internalThemeName !== themeName) {
+      store.getState()._setThemeNameInternal(themeName);
+    }
+  }, [themeName, store]);
+  
+  const contextValue = { store, registry };
+
+  return (
+    <TerminalContextProvider value={contextValue}>
+      <TerminalDisplay welcomeMessage={welcomeMessage} />
+    </TerminalContextProvider>
   );
 };
 
