@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Command } from '../types';
+import { Command, ThemeStyle } from '../types';
 
 export const themeCommand: Command = {
   name: 'theme',
@@ -43,10 +44,10 @@ export const themeCommand: Command = {
         return <p className={theme.textError}>Error: Missing theme name. Usage: theme set &lt;theme_name&gt;</p>;
       }
       
-      const success = setTheme(themeName);
+      const newTheme = setTheme(themeName);
 
-      if (success) {
-        return <p>Theme changed to '<span className={theme.textPrimary}>{themeName}</span>'.</p>;
+      if (newTheme) {
+        return <p>Theme changed to '<span className={newTheme.textPrimary}>{themeName}</span>'.</p>;
       } else {
         return <p className={theme.textError}>Error: Theme '{themeName}' not found. Use 'theme list' to see available themes.</p>;
       }

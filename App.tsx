@@ -1,10 +1,12 @@
+
 import React from 'react';
 import Terminal from './components/Terminal';
-import { useTheme } from './contexts/ThemeContext';
 import { defaultCommands } from './commands';
+import { useTerminalStore } from './store/terminalStore';
+import { ThemeStyle } from './styles/themes';
 
 const WelcomeMessage = () => {
-  const { theme } = useTheme();
+  const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
   return (
     <div>
       <p className={theme.textPrimary}>Welcome to Terminus!</p>
@@ -18,7 +20,7 @@ const WelcomeMessage = () => {
 
 
 const App: React.FC = () => {
-  const { theme } = useTheme();
+  const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
 
   return (
     <main className={`font-mono ${theme.appBg} ${theme.appText} min-h-screen transition-colors duration-300`}>

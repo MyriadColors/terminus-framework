@@ -1,5 +1,7 @@
 import React from 'react';
-import { ThemeStyle } from './contexts/ThemeContext';
+import type { ThemeStyle } from './styles/themes';
+
+export type { ThemeStyle };
 
 export interface CommandArg {
   name: string;
@@ -14,7 +16,7 @@ export interface CommandArg {
 export interface TerminalContext {
   clearHistory: () => void;
   theme: ThemeStyle;
-  setTheme: (themeName: string) => boolean;
+  setTheme: (themeName: string) => ThemeStyle | undefined;
   availableThemes: string[];
 }
 

@@ -1,12 +1,13 @@
+
 import React, { useRef, useEffect } from 'react';
 import { useTerminalStore } from '../store/terminalStore';
 import InputLine from './InputLine';
 import { HistoryItem, Command } from '../types';
-import { useTheme } from '../contexts/ThemeContext';
 import { commandRegistry } from '../services/commandRegistry';
+import { ThemeStyle } from '../styles/themes';
 
 const OutputLine: React.FC<{ item: HistoryItem }> = ({ item }) => {
-  const { theme } = useTheme();
+  const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
   return (
     <div>
       <div className="flex items-center">
@@ -25,10 +26,9 @@ interface TerminalProps {
 
 const Terminal: React.FC<TerminalProps> = ({ commands, welcomeMessage }) => {
   const { history, submitCommand, addHistoryItem } = useTerminalStore();
-  const commandHistory = useTerminalStore((state) => state.commandHistory);
   const addCommandToHistory = useTerminalStore((state) => state.addCommandToHistory);
+  const theme = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
   
-  const { theme, setThemeName, themes } = useTheme();
   const terminalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,10 +51,6 @@ const Terminal: React.FC<TerminalProps> = ({ commands, welcomeMessage }) => {
     }
   }, [history]);
 
-  const handleSubmit = (command: string) => {
-    submitCommand(command, { theme, setThemeName, themes });
-  };
-
   return (
     <div 
       ref={terminalRef} 
@@ -65,8 +61,7 @@ const Terminal: React.FC<TerminalProps> = ({ commands, welcomeMessage }) => {
         <OutputLine key={item.id} item={item} />
       ))}
       <InputLine 
-        onSubmit={handleSubmit}
-        commandHistory={commandHistory}
+        onSubmit={submitCommand}
         addCommandToHistory={addCommandToHistory}
       />
     </div>

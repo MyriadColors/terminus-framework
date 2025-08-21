@@ -1,33 +1,65 @@
+
 import { create } from 'zustand';
 import React from 'react';
-import { HistoryItem } from '../types';
+import { HistoryItem, TerminalContext } from '../types';
 import { commandRegistry } from '../services/commandRegistry';
 import { parseCommand } from '../services/commandParser';
-import { ThemeStyle } from '../contexts/ThemeContext';
+import { ThemeStyle, defaultThemes } from '../styles/themes';
 
 interface TerminalState {
   history: HistoryItem[];
   commandHistory: string[];
 }
 
+interface InputState {
+  inputValue: string;
+  historyIndex: number;
+  suggestions: string[];
+  suggestionIndex: number;
+}
+
+interface ThemeState {
+  themeName: string;
+  themes: Record<string, ThemeStyle>;
+}
+
 interface TerminalActions {
   addHistoryItem: (command: string, output: React.ReactNode) => void;
   clearHistory: () => void;
   addCommandToHistory: (command: string) => void;
-  submitCommand: (
-    commandStr: string,
-    themeContext: {
-      theme: ThemeStyle;
-      setThemeName: (name: string) => void;
-      themes: Record<string, ThemeStyle>;
-    }
-  ) => void;
+  submitCommand: (commandStr: string) => void;
 }
 
-export const useTerminalStore = create<TerminalState & TerminalActions>((set, get) => ({
+interface InputActions {
+  setInputValue: (value: string) => void;
+  setHistoryIndex: (index: number) => void;
+  setSuggestions: (suggestions: string[]) => void;
+  setSuggestionIndex: (index: number) => void;
+  resetInputState: () => void;
+}
+
+interface ThemeActions {
+    setThemeName: (name: string) => ThemeStyle | undefined;
+}
+
+type FullStoreState = TerminalState & InputState & ThemeState & TerminalActions & InputActions & ThemeActions;
+
+export const useTerminalStore = create<FullStoreState>((set, get) => ({
+  // Terminal State
   history: [],
   commandHistory: [],
 
+  // Input State
+  inputValue: '',
+  historyIndex: -1,
+  suggestions: [],
+  suggestionIndex: -1,
+
+  // Theme State
+  themeName: 'default',
+  themes: defaultThemes,
+
+  // Terminal Actions
   addHistoryItem: (command, output) => {
     // Prevent adding session_start command to the visible output lines multiple times
     if (command === 'session_start' && get().history.some(item => item.command === 'session_start')) {
@@ -48,8 +80,7 @@ export const useTerminalStore = create<TerminalState & TerminalActions>((set, ge
     }
   },
 
-  submitCommand: (commandStr, themeContext) => {
-    const { theme, setThemeName, themes } = themeContext;
+  submitCommand: (commandStr) => {
     const commandName = commandStr.trim().split(/\s+/)[0] || '';
     
     if (!commandName) {
@@ -57,21 +88,17 @@ export const useTerminalStore = create<TerminalState & TerminalActions>((set, ge
     }
 
     const command = commandRegistry.get(commandName);
+    const state = get();
+    const theme = state.themes[state.themeName] || state.themes.default;
 
     if (command) {
       try {
-        const availableThemes = Object.keys(themes);
-        const context = { 
+        const availableThemes = Object.keys(get().themes);
+        const context: TerminalContext = { 
             clearHistory: get().clearHistory, 
-            theme, 
+            theme: theme, 
             availableThemes,
-            setTheme: (name: string): boolean => {
-                if (availableThemes.includes(name)) {
-                    setThemeName(name);
-                    return true;
-                }
-                return false;
-            }
+            setTheme: get().setThemeName,
         };
 
         const args = parseCommand(commandStr, command.args);
@@ -86,5 +113,22 @@ export const useTerminalStore = create<TerminalState & TerminalActions>((set, ge
     } else {
       get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Command not found: '${commandName}'. Type 'help' for a list of commands.`));
     }
+  },
+
+  // Input Actions
+  setInputValue: (value) => set({ inputValue: value }),
+  setHistoryIndex: (index) => set({ historyIndex: index }),
+  setSuggestions: (suggestions) => set({ suggestions: suggestions }),
+  setSuggestionIndex: (index) => set({ suggestionIndex: index }),
+  resetInputState: () => set({ inputValue: '', historyIndex: -1, suggestions: [], suggestionIndex: -1 }),
+  
+  // Theme Actions
+  setThemeName: (name: string): ThemeStyle | undefined => {
+    const themes = get().themes;
+    if (themes[name]) {
+        set({ themeName: name });
+        return themes[name];
+    }
+    return undefined;
   },
 }));

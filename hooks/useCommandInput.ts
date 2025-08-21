@@ -1,10 +1,10 @@
 
-import { useState, RefObject } from 'react';
+import { RefObject } from 'react';
 import { getSuggestions } from '../services/autocompleteService';
+import { useTerminalStore } from '../store/terminalStore';
 
 interface UseCommandInputProps {
   onSubmit: (command: string) => void;
-  commandHistory: string[];
   addCommandToHistory: (command: string) => void;
   inputRef: RefObject<HTMLInputElement>;
   updateCursorPosition: () => void;
@@ -12,19 +12,26 @@ interface UseCommandInputProps {
 
 export const useCommandInput = ({
   onSubmit,
-  commandHistory,
   addCommandToHistory,
   inputRef,
   updateCursorPosition
 }: UseCommandInputProps) => {
-  const [value, setValue] = useState('');
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [suggestionIndex, setSuggestionIndex] = useState(-1);
+  const {
+    inputValue: value,
+    historyIndex,
+    suggestions,
+    suggestionIndex,
+    commandHistory,
+    setInputValue,
+    setHistoryIndex,
+    setSuggestions,
+    setSuggestionIndex,
+    resetInputState,
+  } = useTerminalStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setValue(newValue);
+    setInputValue(newValue);
     setSuggestionIndex(-1); // Reset autocomplete cycling
 
     if (newValue) {
@@ -40,11 +47,8 @@ export const useCommandInput = ({
     if (trimmedValue) {
       onSubmit(trimmedValue);
       addCommandToHistory(trimmedValue);
-      setHistoryIndex(-1);
     }
-    setValue('');
-    setSuggestions([]);
-    setSuggestionIndex(-1);
+    resetInputState();
   };
   
   // Calculate the inline "ghost" hint for rendering.
@@ -73,7 +77,7 @@ export const useCommandInput = ({
         const newIndex = historyIndex < commandHistory.length - 1 ? historyIndex + 1 : commandHistory.length - 1;
         setHistoryIndex(newIndex);
         const newCommand = commandHistory[commandHistory.length - 1 - newIndex] || '';
-        setValue(newCommand);
+        setInputValue(newCommand);
         setSuggestions([]);
         setSuggestionIndex(-1);
         moveCursorToEnd();
@@ -87,7 +91,7 @@ export const useCommandInput = ({
         if (newIndex >= 0) {
           newCommand = commandHistory[commandHistory.length - 1 - newIndex] || '';
         }
-        setValue(newCommand);
+        setInputValue(newCommand);
         setSuggestions([]);
         setSuggestionIndex(-1);
         moveCursorToEnd();
@@ -95,13 +99,13 @@ export const useCommandInput = ({
     } else if (e.key === 'ArrowRight' && inlineHint && inputRef.current?.selectionStart === value.length) {
         // Accept inline suggestion with ArrowRight if cursor is at the end
         e.preventDefault();
-        setValue(value + inlineHint);
+        setInputValue(value + inlineHint);
     } else if (e.key === 'Tab') {
         e.preventDefault();
         
         // If there's an inline hint, the first tab accepts it.
         if (inlineHint && inputRef.current?.selectionStart === value.length) {
-            setValue(value + inlineHint);
+            setInputValue(value + inlineHint);
             return;
         }
 
@@ -123,7 +127,7 @@ export const useCommandInput = ({
             newValue = parts.join(' ') + ' ';
         }
 
-        setValue(newValue);
+        setInputValue(newValue);
         moveCursorToEnd();
     }
   };

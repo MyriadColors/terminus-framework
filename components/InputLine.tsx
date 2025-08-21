@@ -1,25 +1,26 @@
 
+
 import React, { useEffect, useRef, useCallback } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
 import { useCommandInput } from '../hooks/useCommandInput';
+import { useTerminalStore } from '../store/terminalStore';
+import { ThemeStyle } from '../styles/themes';
 
 interface InputLineProps {
   onSubmit: (command: string) => void;
-  commandHistory: string[];
   addCommandToHistory: (command: string) => void;
 }
 
-const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, addCommandToHistory }) => {
+const InputLine: React.FC<InputLineProps> = ({ onSubmit, addCommandToHistory }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const measurementRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
-  const { theme } = useTheme();
+  const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
 
   // This function reads from the DOM to calculate and imperatively set the cursor position.
   // It remains in the component as it's tightly coupled to the component's refs and DOM structure.
   const updateCursorPosition = useCallback(() => {
     if (!inputRef.current || !measurementRef.current || !cursorRef.current) return;
-    
+
     const input = inputRef.current;
     const selectionStart = input.selectionStart ?? 0;
     const textBeforeCursor = input.value.substring(0, selectionStart);
@@ -40,7 +41,6 @@ const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, addComm
     handleKeyDown,
   } = useCommandInput({
     onSubmit,
-    commandHistory,
     addCommandToHistory,
     inputRef,
     updateCursorPosition
@@ -50,7 +50,7 @@ const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, addComm
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
-  
+
   // Update the visual cursor position whenever the input value changes.
   useEffect(() => {
     updateCursorPosition();
@@ -66,11 +66,11 @@ const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, addComm
           aria-hidden="true"
         >
         </span>
-        
+
         {/* Visual Layer: Renders the user's text and the greyed-out suggestion */}
         <div className="absolute inset-0 pointer-events-none whitespace-pre overflow-hidden" aria-hidden="true">
-            <span>{value}</span>
-            <span className={theme.inlineHintText}>{inlineHint}</span>
+          <span>{value}</span>
+          <span className={theme.inlineHintText}>{inlineHint}</span>
         </div>
 
         <input
@@ -86,7 +86,7 @@ const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, addComm
           autoComplete="off"
           spellCheck="false"
         />
-        
+
         {/* This is the fake blinking cursor, now positioned via ref */}
         <span
           ref={cursorRef}
