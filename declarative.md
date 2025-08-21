@@ -229,6 +229,48 @@ return {
 };
 ```
 
+## Content and Configuration Types
+
+To ensure clarity and consistency in the implementation, the specific types for `content` and `config` for each `OutputType` are defined as follows:
+
+### OutputType.TEXT, SUCCESS, ERROR, WARNING, CODE, MARKDOWN
+
+- `content`: `string`
+- `config`: `{ styleType?: 'textPrimary' | 'textSecondary' | 'textSuccess' | 'textError' | 'textWarning' | ... ; className?: string; }`
+  - `styleType`: Maps to theme-provided styles (e.g., `textPrimary` -> `context.theme.textPrimary`).
+  - `className`: Allows for additional custom classes.
+
+### OutputType.LIST
+
+- `content`: `Array<{ content: string; type?: 'success' | 'warning' | 'error' | 'default'; styleType?: string; className?: string; }>`
+  - An array of list item objects.
+  - `content`: The text for the list item.
+  - `type`: Optional semantic type for the item, potentially influencing default styling.
+  - `styleType` / `className`: Optional item-specific styling.
+- `config`: `{ ordered?: boolean; itemStyleType?: string; itemClassName?: string; }`
+  - `ordered`: If `true`, renders an `<ol>`; otherwise, a `<ul>`.
+  - `itemStyleType` / `itemClassName`: Default styles for all list items.
+
+### OutputType.TABLE
+
+- `content`: `{ headers: string[]; rows: string[][]; }`
+  - `headers`: An array of column header strings.
+  - `rows`: An array of rows, where each row is an array of cell strings.
+- `config`: `{ headerStyleType?: string; rowStyleType?: string; cellStyleType?: string; className?: string; }`
+  - Styling options for headers, rows, and cells.
+
+### OutputType.JSON
+
+- `content`: `any` (The raw data to be JSON stringified).
+- `config`: `{ pretty?: boolean; indentSize?: number; className?: string; }`
+  - `pretty`: If `true`, formats the JSON with indentation.
+  - `indentSize`: Number of spaces for indentation if `pretty` is true.
+
+### OutputType.CUSTOM
+
+- `content`: `React.ReactNode` (Direct JSX, for maximum flexibility when predefined types aren't suitable).
+- `config`: `{ className?: string; }`
+
 ## Success Criteria
 
 1. All existing commands work with the new system
