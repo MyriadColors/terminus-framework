@@ -4,7 +4,7 @@ import { Command } from '../types';
 export const echoCommand: Command = {
   name: 'echo',
   description: 'Prints the given text back to the terminal.',
-  aliases: ['print'],
+  aliases: ['print', 'say'],
   args: [
     {
       name: 'text',

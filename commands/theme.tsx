@@ -5,6 +5,7 @@ import { Command, ThemeStyle } from '../types';
 export const themeCommand: Command = {
   name: 'theme',
   description: 'Lists available themes or sets the current theme.',
+  aliases: ['style'],
   args: [
     {
       name: 'subcommand',

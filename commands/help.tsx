@@ -58,6 +58,7 @@ const renderAllCommands = (context: TerminalContext) => {
 export const helpCommand: Command = {
   name: 'help',
   description: 'Displays a list of available commands or details about a specific command.',
+  aliases: ['h', '?'],
   handler: (args, context) => {
     const commandName = args._?.[0];
 
