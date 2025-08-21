@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useCommandInput } from '../hooks/useCommandInput';
@@ -5,10 +6,10 @@ import { useCommandInput } from '../hooks/useCommandInput';
 interface InputLineProps {
   onSubmit: (command: string) => void;
   commandHistory: string[];
-  setCommandHistory: React.Dispatch<React.SetStateAction<string[]>>;
+  addCommandToHistory: (command: string) => void;
 }
 
-const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, setCommandHistory }) => {
+const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, addCommandToHistory }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const measurementRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
@@ -40,7 +41,7 @@ const InputLine: React.FC<InputLineProps> = ({ onSubmit, commandHistory, setComm
   } = useCommandInput({
     onSubmit,
     commandHistory,
-    setCommandHistory,
+    addCommandToHistory,
     inputRef,
     updateCursorPosition
   });

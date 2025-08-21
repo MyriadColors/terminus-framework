@@ -1,5 +1,6 @@
+
 import React, { useRef, useEffect } from 'react';
-import useTerminal from '../hooks/useTerminal';
+import { useTerminalStore } from '../store/terminalStore';
 import InputLine from './InputLine';
 import { HistoryItem } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
@@ -18,14 +19,26 @@ const OutputLine: React.FC<{ item: HistoryItem }> = ({ item }) => {
 };
 
 const Terminal: React.FC = () => {
-  const { history, submitCommand, commandHistory, setCommandHistory, terminalRef } = useTerminal();
-  const { theme } = useTheme();
+  const { history, submitCommand, initialize } = useTerminalStore();
+  const commandHistory = useTerminalStore((state) => state.commandHistory);
+  const addCommandToHistory = useTerminalStore((state) => state.addCommandToHistory);
+  
+  const { theme, setThemeName, themes } = useTheme();
+  const terminalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [history, terminalRef]);
+  }, [history]);
+
+  const handleSubmit = (command: string) => {
+    submitCommand(command, { theme, setThemeName, themes });
+  };
 
   return (
     <div 
@@ -37,9 +50,9 @@ const Terminal: React.FC = () => {
         <OutputLine key={item.id} item={item} />
       ))}
       <InputLine 
-        onSubmit={submitCommand}
+        onSubmit={handleSubmit}
         commandHistory={commandHistory}
-        setCommandHistory={setCommandHistory}
+        addCommandToHistory={addCommandToHistory}
       />
     </div>
   );

@@ -1,10 +1,11 @@
+
 import { useState, RefObject } from 'react';
 import { getSuggestions } from '../services/autocompleteService';
 
 interface UseCommandInputProps {
   onSubmit: (command: string) => void;
   commandHistory: string[];
-  setCommandHistory: React.Dispatch<React.SetStateAction<string[]>>;
+  addCommandToHistory: (command: string) => void;
   inputRef: RefObject<HTMLInputElement>;
   updateCursorPosition: () => void;
 }
@@ -12,7 +13,7 @@ interface UseCommandInputProps {
 export const useCommandInput = ({
   onSubmit,
   commandHistory,
-  setCommandHistory,
+  addCommandToHistory,
   inputRef,
   updateCursorPosition
 }: UseCommandInputProps) => {
@@ -38,9 +39,7 @@ export const useCommandInput = ({
     const trimmedValue = value.trim();
     if (trimmedValue) {
       onSubmit(trimmedValue);
-      if (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== trimmedValue) {
-        setCommandHistory(prev => [...prev, trimmedValue]);
-      }
+      addCommandToHistory(trimmedValue);
       setHistoryIndex(-1);
     }
     setValue('');
