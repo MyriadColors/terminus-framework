@@ -68,8 +68,22 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({ output, theme }) => {
       
       return (
         <ListTag className={listClass}>
-          {(content as Array<{ content: string; type?: string; styleType?: string; className?: string }>).map((item, index) => {
+          {(content as Array<{ content: string; type?: string; styleType?: string; className?: string; parts?: Array<{ text: string; styleType?: string; className?: string }> }>).map((item, index) => {
             const itemClass = `${getThemeClass(item.styleType, '')} ${item.className || ''}`.trim();
+            
+            // If the item has parts, render them with individual styling
+            if (item.parts && item.parts.length > 0) {
+              return (
+                <li key={index} className={itemClass}>
+                  {item.parts.map((part, partIndex) => {
+                    const partClass = `${getThemeClass(part.styleType, theme.textPrimary)} ${part.className || ''}`.trim();
+                    return <span key={partIndex} className={partClass}>{part.text}</span>;
+                  })}
+                </li>
+              );
+            }
+            
+            // Otherwise, render the content as a simple string
             return (
               <li key={index} className={itemClass}>
                 {item.content}

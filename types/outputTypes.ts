@@ -57,6 +57,8 @@ export interface ListItem {
   type?: 'success' | 'warning' | 'error' | 'default';
   styleType?: string;
   className?: string;
+  // For complex items with multiple styled parts
+  parts?: Array<{ text: string; styleType?: string; className?: string }>;
 }
 
 export type ListContent = ListItem[];

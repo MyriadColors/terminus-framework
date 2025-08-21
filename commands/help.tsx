@@ -50,17 +50,26 @@ export const helpCommand: Command = {
     const commands = context.getAllCommands()
       .sort((a, b) => a.name.localeCompare(b.name));
       
-    const lines = [
-        { text: 'Available Commands:', styleType: 'textSecondary' }
-    ];
+    // Create list items with command names in textSecondary and descriptions in textFaded
+    const commandItems = commands.map(cmd => ({
+        content: '', // Will be rendered via parts
+        parts: [
+            { text: cmd.name, styleType: 'textSecondary' },
+            { text: ` - ${cmd.description}`, styleType: 'textFaded' }
+        ]
+    }));
     
-    commands.forEach(cmd => {
-        lines.push({ text: `${cmd.name} - ${cmd.description}`, styleType: 'textPrimary' });
-    });
+    const header = { content: 'Available Commands:', styleType: 'textSecondary' };
+    const instruction = { content: "Type 'help [command]' for more details on a specific command.", styleType: 'textFaded' };
     
-    lines.push({ text: '', styleType: 'textPrimary' }); // Empty line
-    lines.push({ text: "Type 'help [command]' for more details on a specific command.", styleType: 'textFaded' });
-    
-    return { success: true, output: context.printMultiLine(lines) };
+    return { 
+        success: true, 
+        output: context.printList([
+            header,
+            ...commandItems,
+            { content: '', styleType: 'textPrimary' }, // Empty line
+            instruction
+        ], { ordered: false })
+    };
   },
 };
