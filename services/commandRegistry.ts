@@ -1,4 +1,3 @@
-
 import { Command } from '../types';
 
 class CommandRegistry {
@@ -22,6 +21,10 @@ class CommandRegistry {
         uniqueCommands.set(cmd.name, cmd);
     });
     return Array.from(uniqueCommands.values());
+  }
+  
+  public clear(): void {
+    this.commands.clear();
   }
 }
 

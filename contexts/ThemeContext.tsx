@@ -23,7 +23,7 @@ export interface ThemeStyle {
   textFaded: string;
 }
 
-const themes: Record<string, ThemeStyle> = {
+export const defaultThemes: Record<string, ThemeStyle> = {
   default: {
     name: 'default',
     appBg: 'bg-gray-900',
@@ -105,21 +105,27 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: themes.default,
+  theme: defaultThemes.default,
   setThemeName: () => {},
-  themes: themes,
+  themes: defaultThemes,
 });
 
 export const useTheme = () => useContext(ThemeContext);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  themes?: Record<string, ThemeStyle>;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, themes: customThemes }) => {
   const [themeName, setThemeName] = useState('default');
+  const availableThemes = customThemes || defaultThemes;
 
   const value = useMemo(() => ({
-    theme: themes[themeName] || themes.default,
+    theme: availableThemes[themeName] || availableThemes.default,
     setThemeName,
-    themes,
-  }), [themeName]);
+    themes: availableThemes,
+  }), [themeName, availableThemes]);
 
   return (
     <ThemeContext.Provider value={value}>

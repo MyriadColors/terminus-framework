@@ -1,23 +1,9 @@
-
 import { create } from 'zustand';
 import React from 'react';
 import { HistoryItem } from '../types';
 import { commandRegistry } from '../services/commandRegistry';
 import { parseCommand } from '../services/commandParser';
-import { useTheme as useThemeHook, ThemeStyle } from '../contexts/ThemeContext';
-
-const WelcomeMessage: React.FC = () => {
-    const { theme } = useThemeHook();
-    return React.createElement('div', null,
-        React.createElement('p', { className: theme.textPrimary }, 'Welcome to Terminus!'),
-        React.createElement('p', null, 'This is a React-based framework for building interactive TUIs.'),
-        React.createElement('p', null, 
-            'Type ',
-            React.createElement('span', { className: theme.textSecondary }, "'help'"),
-            ' to see a list of available commands.'
-        )
-    );
-};
+import { ThemeStyle } from '../contexts/ThemeContext';
 
 interface TerminalState {
   history: HistoryItem[];
@@ -36,20 +22,17 @@ interface TerminalActions {
       themes: Record<string, ThemeStyle>;
     }
   ) => void;
-  initialize: () => void;
 }
 
 export const useTerminalStore = create<TerminalState & TerminalActions>((set, get) => ({
   history: [],
   commandHistory: [],
 
-  initialize: () => {
-    if (get().history.length === 0) {
-        get().addHistoryItem('session_start', React.createElement(WelcomeMessage));
-    }
-  },
-
   addHistoryItem: (command, output) => {
+    // Prevent adding session_start command to the visible output lines multiple times
+    if (command === 'session_start' && get().history.some(item => item.command === 'session_start')) {
+        return;
+    }
     set((state) => ({
       history: [...state.history, { id: state.history.length, command, output }],
     }));
@@ -60,7 +43,7 @@ export const useTerminalStore = create<TerminalState & TerminalActions>((set, ge
   },
 
   addCommandToHistory: (command) => {
-    if (get().commandHistory.at(-1) !== command) {
+    if (get().commandHistory[get().commandHistory.length - 1] !== command) {
         set((state) => ({ commandHistory: [...state.commandHistory, command] }));
     }
   },
