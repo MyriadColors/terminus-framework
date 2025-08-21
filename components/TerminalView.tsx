@@ -3,6 +3,7 @@ import { HistoryItem } from '../types';
 import { ThemeStyle } from '../styles/themes';
 import { useTerminalStore } from '../contexts/TerminalContext';
 import InputLine from './InputLine';
+import OutputRenderer from './output/OutputRenderer';
 
 const DefaultHistoryItem: React.FC<{ item: HistoryItem }> = ({ item }) => {
   const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
@@ -11,7 +12,11 @@ const DefaultHistoryItem: React.FC<{ item: HistoryItem }> = ({ item }) => {
   const outputClassName = item.type === 'error' ? theme.textError : '';
 
   if (isProgrammatic) {
-    return <div className={`leading-snug ${outputClassName}`}>{item.output}</div>;
+    return (
+      <div className={`leading-snug ${outputClassName}`}>
+        <OutputRenderer output={item.output} theme={theme} />
+      </div>
+    );
   }
 
   return (
@@ -20,7 +25,9 @@ const DefaultHistoryItem: React.FC<{ item: HistoryItem }> = ({ item }) => {
         <span className={`${theme.promptSymbol} mr-2`}>$</span>
         <span className="flex-1">{item.command}</span>
       </div>
-      <div className={`leading-snug ${outputClassName}`}>{item.output}</div>
+      <div className={`leading-snug ${outputClassName}`}>
+        <OutputRenderer output={item.output} theme={theme} />
+      </div>
     </div>
   );
 };

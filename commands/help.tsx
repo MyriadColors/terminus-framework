@@ -1,58 +1,4 @@
-import { Command, CommandArg, CommandContext } from '../types';
-
-const renderCommandHelp = (cmd: Command, context: CommandContext) => {
-    const { theme } = context;
-    const renderArgs = (args: CommandArg[] | undefined) => {
-        if (!args || args.length === 0) {
-            return <p className={theme.textFaded}>This command takes no arguments.</p>;
-        }
-        return (
-            <ul className="list-disc list-inside ml-2">
-                {args.map(arg => {
-                    const alias = arg.alias ? `, -${arg.alias}` : '';
-                    const name = arg.variadic ? `${arg.name}...` : `--${arg.name}`;
-                    const nameDisplay = arg.variadic ? arg.name : name;
-
-                    return (
-                        <li key={arg.name}>
-                             <span className={`${theme.textTertiary} w-36 inline-block`}>{nameDisplay}{alias}</span>
-                             <span className={theme.textFaded}>- {arg.description} {arg.required && <span className={theme.textError}>(required)</span>}</span>
-                        </li>
-                    )
-                })}
-            </ul>
-        )
-    }
-
-    return (
-        <div>
-            <p><span className={`font-bold ${theme.textPrimary}`}>{cmd.name}</span> - <span className="italic">{cmd.description}</span></p>
-            {cmd.aliases && cmd.aliases.length > 0 && <p className={`${theme.textFaded} mt-1`}>Aliases: {cmd.aliases.join(', ')}</p>}
-            <p className={`font-bold mt-2 ${theme.textSecondary}`}>Usage:</p>
-            {renderArgs(cmd.args)}
-        </div>
-    )
-}
-
-const renderAllCommands = (context: CommandContext) => {
-    const { theme } = context;
-    const commands = context.getAllCommands()
-      .sort((a, b) => a.name.localeCompare(b.name));
-    return (
-        <div>
-            <p className={`font-bold mb-2 ${theme.textSecondary}`}>Available Commands:</p>
-            <ul className="list-disc list-inside">
-            {commands.map(cmd => (
-                <li key={cmd.name}>
-                <span className={`${theme.textPrimary} font-semibold w-24 inline-block`}>{cmd.name}</span>
-                <span className={theme.textFaded}>- {cmd.description}</span>
-                </li>
-            ))}
-            </ul>
-            <p className="mt-4 text-gray-500">Type 'help [command]' for more details on a specific command.</p>
-        </div>
-    );
-}
+import { Command, CommandArg } from '../types';
 
 export const helpCommand: Command = {
   name: 'help',
@@ -64,12 +10,57 @@ export const helpCommand: Command = {
     if (commandName) {
         const commandToHelp = context.getCommand(commandName as string);
         if (commandToHelp) {
-            return { success: true, output: renderCommandHelp(commandToHelp, context) };
+            const { name, description, aliases, args: commandArgs } = commandToHelp;
+            
+            // Build lines with appropriate styling
+            const lines = [
+                { text: `${name} - ${description}`, styleType: 'textPrimary' }
+            ];
+            
+            if (aliases && aliases.length > 0) {
+                lines.push({ text: `Aliases: ${aliases.join(', ')}`, styleType: 'textFaded' });
+            }
+            
+            lines.push({ text: '', styleType: 'textPrimary' }); // Empty line
+            lines.push({ text: 'Usage:', styleType: 'textSecondary' });
+            
+            if (!commandArgs || commandArgs.length === 0) {
+                lines.push({ text: 'This command takes no arguments.', styleType: 'textFaded' });
+            } else {
+                commandArgs.forEach(arg => {
+                    const alias = arg.alias ? `, -${arg.alias}` : '';
+                    const name = arg.variadic ? `${arg.name}...` : `--${arg.name}`;
+                    const nameDisplay = arg.variadic ? arg.name : name;
+                    const required = arg.required ? " (required)" : "";
+                    
+                    lines.push({
+                        text: `  ${nameDisplay}${alias} - ${arg.description}${required}`,
+                        styleType: arg.required ? 'textError' : 'textFaded'
+                    });
+                });
+            }
+            
+            return { success: true, output: context.printMultiLine(lines) };
         } else {
-            return { success: false, error: <p className={context.theme.textError}>Command '{commandName}' not found.</p> };
+            return { success: false, error: context.printError(`Command '${commandName}' not found.`) };
         }
     }
 
-    return { success: true, output: renderAllCommands(context) };
+    // List all commands
+    const commands = context.getAllCommands()
+      .sort((a, b) => a.name.localeCompare(b.name));
+      
+    const lines = [
+        { text: 'Available Commands:', styleType: 'textSecondary' }
+    ];
+    
+    commands.forEach(cmd => {
+        lines.push({ text: `${cmd.name} - ${cmd.description}`, styleType: 'textPrimary' });
+    });
+    
+    lines.push({ text: '', styleType: 'textPrimary' }); // Empty line
+    lines.push({ text: "Type 'help [command]' for more details on a specific command.", styleType: 'textFaded' });
+    
+    return { success: true, output: context.printMultiLine(lines) };
   },
 };

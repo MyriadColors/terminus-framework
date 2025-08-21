@@ -30,7 +30,7 @@ export const addCommand: Command = {
     if (operands.length < 2) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>Error: At least 2 operands required</p>
+        error: context.printError("Error: At least 2 operands required")
       };
     }
     
@@ -41,12 +41,12 @@ export const addCommand: Command = {
       
       return {
         success: true,
-        output: <p className={context.theme.textPrimary}>Result: {formattedResult}</p>
+        output: context.printSuccess(`Result: ${formattedResult}`)
       };
     } catch (error) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>{(error as Error).message}</p>
+        error: context.printError((error as Error).message)
       };
     }
   }
@@ -62,7 +62,7 @@ export const subtractCommand: Command = {
     if (operands.length < 2) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>Error: At least 2 operands required</p>
+        error: context.printError("Error: At least 2 operands required")
       };
     }
     
@@ -75,12 +75,12 @@ export const subtractCommand: Command = {
       
       return {
         success: true,
-        output: <p className={context.theme.textPrimary}>Result: {formattedResult}</p>
+        output: context.printSuccess(`Result: ${formattedResult}`)
       };
     } catch (error) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>{(error as Error).message}</p>
+        error: context.printError((error as Error).message)
       };
     }
   }
@@ -96,7 +96,7 @@ export const multiplyCommand: Command = {
     if (operands.length < 2) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>Error: At least 2 operands required</p>
+        error: context.printError("Error: At least 2 operands required")
       };
     }
     
@@ -107,12 +107,12 @@ export const multiplyCommand: Command = {
       
       return {
         success: true,
-        output: <p className={context.theme.textPrimary}>Result: {formattedResult}</p>
+        output: context.printSuccess(`Result: ${formattedResult}`)
       };
     } catch (error) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>{(error as Error).message}</p>
+        error: context.printError((error as Error).message)
       };
     }
   }
@@ -128,7 +128,7 @@ export const divideCommand: Command = {
     if (operands.length < 2) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>Error: At least 2 operands required</p>
+        error: context.printError("Error: At least 2 operands required")
       };
     }
     
@@ -140,7 +140,7 @@ export const divideCommand: Command = {
         if (numbers[i] === 0) {
           return {
             success: false,
-            error: <p className={context.theme.textError}>Error: Division by zero is not allowed</p>
+            error: context.printError("Error: Division by zero is not allowed")
           };
         }
       }
@@ -152,12 +152,12 @@ export const divideCommand: Command = {
       
       return {
         success: true,
-        output: <p className={context.theme.textPrimary}>Result: {formattedResult}</p>
+        output: context.printSuccess(`Result: ${formattedResult}`)
       };
     } catch (error) {
       return {
         success: false,
-        error: <p className={context.theme.textError}>{(error as Error).message}</p>
+        error: context.printError((error as Error).message)
       };
     }
   }

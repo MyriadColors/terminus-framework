@@ -1,7 +1,21 @@
 
 import { create } from 'zustand';
 import React from 'react';
-import { HistoryItem, Command, CommandContext, CommandResult, isCommandResult } from '../types';
+import { HistoryItem, Command, CommandContext, CommandResult, isCommandResult, isOutputObject, Output } from '../types';
+import { OutputType } from '../types/outputTypes';
+import { 
+  printLine, 
+  printMultiLine,
+  printSuccess, 
+  printError, 
+  printWarning, 
+  printCode, 
+  printList, 
+  printTable, 
+  printJson, 
+  printMarkdown, 
+  printCustom 
+} from '../utils/outputHelpers';
 import { CommandRegistry } from '../services/commandRegistry';
 import { parseCommand } from '../services/commandParser';
 import { ThemeStyle, defaultThemes } from '../styles/themes';
@@ -27,7 +41,7 @@ interface ThemeState {
 }
 
 interface TerminalActions {
-  addHistoryItem: (command: string, output: React.ReactNode, type?: 'standard' | 'error') => void;
+  addHistoryItem: (command: string, output: Output | React.ReactNode, type?: 'standard' | 'error') => void;
   clearHistory: () => void;
   addCommandToHistory: (command: string) => void;
   submitCommand: (commandStr: string) => void;
@@ -86,8 +100,18 @@ export const createTerminalStore = ({
     if (command === 'session_start' && get().history.some(item => item.command === 'session_start')) {
         return;
     }
+    
+    // Convert legacy ReactNode output to Output object for consistency
+    let normalizedOutput: Output | React.ReactNode = output;
+    if (!isOutputObject(output) && React.isValidElement(output)) {
+      normalizedOutput = {
+        type: OutputType.CUSTOM,
+        content: { content: output }
+      } as Output;
+    }
+    
     set((state) => ({
-      history: [...state.history, { id: state.history.length, command, output, type }],
+      history: [...state.history, { id: state.history.length, command, output: normalizedOutput, type }],
     }));
   },
 
@@ -124,6 +148,17 @@ export const createTerminalStore = ({
             getAllCommands: (): Command[] => registry.getAll(),
             getCommand: (name: string): Command | undefined => registry.get(name),
             setCurrentPath: get().setCurrentPath,
+            printLine,
+            printMultiLine,
+            printSuccess,
+            printError,
+            printWarning,
+            printCode,
+            printList,
+            printTable,
+            printJson,
+            printMarkdown,
+            printCustom
         };
 
         const args = parseCommand(commandStr, command.args);
@@ -133,17 +168,17 @@ export const createTerminalStore = ({
             if (result.success) {
                 get().addHistoryItem(commandStr, result.output, 'standard');
             } else {
-                get().addHistoryItem(commandStr, (result as { success: false; error: React.ReactNode; }).error, 'error');
+                get().addHistoryItem(commandStr, (result as { success: false; error: Output | React.ReactNode; }).error, 'error');
             }
         } else if (result !== undefined && result !== null) {
             // Fallback for commands that might still return React.ReactNode directly
             get().addHistoryItem(commandStr, result as React.ReactNode, 'standard');
         }
       } else {
-        get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Command not found: '${commandName}'. Type 'help' for a list of commands.`), 'error');
+        get().addHistoryItem(commandStr, printError(`Command not found: '${commandName}'. Type 'help' for a list of commands.`), 'error');
       }
     } catch (error) {
-      get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Error executing command: ${(error as Error).message}`), 'error');
+      get().addHistoryItem(commandStr, printError(`Error executing command: ${(error as Error).message}`), 'error');
     } finally {
       set({ isBusy: false });
     }

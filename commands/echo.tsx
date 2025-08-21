@@ -19,7 +19,7 @@ export const echoCommand: Command = {
       type: 'boolean',
     }
   ],
-  handler: (args) => {
+  handler: (args, context) => {
     // The parser puts positional arguments in the `_` property.
     let textToEcho = (args._ as string[])?.join(' ') || '';
 
@@ -28,6 +28,6 @@ export const echoCommand: Command = {
       textToEcho = textToEcho.toUpperCase();
     }
     
-    return { success: true, output: <p>{textToEcho}</p> };
+    return { success: true, output: context.printLine(textToEcho) };
   }
 };

@@ -23,38 +23,46 @@ export const themeCommand: Command = {
     const subCommand = originalSubCommand || 'list';
 
     if (subCommand === 'list') {
+      const themeItems = availableThemes.map(name => ({
+        content: `${name}${theme.name === name ? ' (current)' : ''}`,
+        styleType: theme.name === name ? 'textFaded' : 'textPrimary'
+      }));
+      
       return {
         success: true,
-        output: (
-          <div>
-            <p className={theme.textSecondary}>Available Themes:</p>
-            <ul className="list-disc list-inside">
-              {availableThemes.map((name) => (
-                <li key={name}>
-                  <span className={theme.textPrimary}>{name}</span>
-                  {theme.name === name && <span className={theme.textFaded}> (current)</span>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ),
+        output: context.printList(themeItems, { 
+          ordered: false,
+          itemStyleType: 'textPrimary'
+        })
       };
     }
     
     if (subCommand === 'set') {
       if (!themeName) {
-        return { success: false, error: <p className={theme.textError}>Error: Missing theme name. Usage: theme set &lt;theme_name&gt;</p> };
+        return { 
+          success: false, 
+          error: context.printError("Error: Missing theme name. Usage: theme set <theme_name>") 
+        };
       }
       
       const newTheme = setTheme(themeName);
 
       if (newTheme) {
-        return { success: true, output: <p>Theme changed to '<span className={newTheme.textPrimary}>{themeName}</span>'.</p> };
+        return { 
+          success: true, 
+          output: context.printSuccess(`Theme changed to '${themeName}'.`) 
+        };
       } else {
-        return { success: false, error: <p className={theme.textError}>Error: Theme '{themeName}' not found. Use 'theme list' to see available themes.</p> };
+        return { 
+          success: false, 
+          error: context.printError(`Error: Theme '${themeName}' not found. Use 'theme list' to see available themes.`) 
+        };
       }
     }
 
-    return { success: false, error: <p className={theme.textError}>Invalid subcommand '{originalSubCommand}'. Use 'list' or 'set'.</p> };
+    return { 
+      success: false, 
+      error: context.printError(`Invalid subcommand '${originalSubCommand}'. Use 'list' or 'set'.`) 
+    };
   },
 };
