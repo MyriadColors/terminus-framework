@@ -1,6 +1,7 @@
 
 import React from 'react';
 import Terminal from './components/Terminal';
+import './commands'; // Import for side-effect of registering commands
 
 const App: React.FC = () => {
   return (

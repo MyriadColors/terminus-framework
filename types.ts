@@ -3,11 +3,21 @@ import React from 'react';
 export interface CommandArg {
   name: string;
   description: string;
-  required: boolean;
+  required?: boolean;
   defaultValue?: string | number | boolean;
+  alias?: string;
+  variadic?: boolean;
+  type?: 'string' | 'number' | 'boolean';
 }
 
-export type CommandHandler = (args: Record<string, string | number | boolean>) => React.ReactNode;
+export interface TerminalContext {
+  clearHistory: () => void;
+}
+
+export type CommandHandler = (
+    args: Record<string, any>,
+    context: TerminalContext
+) => React.ReactNode;
 
 export interface Command {
   name: string;
