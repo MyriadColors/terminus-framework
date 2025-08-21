@@ -1,347 +1,343 @@
 # Terminus Framework
 
-A React-based framework for building interactive Terminal User Interfaces (TUIs). Terminus provides a modern, component-based approach to creating terminal applications with React, TypeScript, and a pluggable command system.
+Terminus is a React-based framework for building interactive terminal user interfaces (TUIs).
 
-## 🚀 Features
+## Table of Contents
 
-- **React-powered TUIs**: Build terminal interfaces using familiar React components
-- **Pluggable Command System**: Easy to extend with custom commands
-- **Themeable Interface**: Multiple themes with CSS-in-JS styling
-- **TypeScript Support**: Full type safety and IntelliSense
-- **State Management**: Built-in Zustand store for terminal state
-- **Command History**: Navigate through previous commands
-- **Auto-completion**: Built-in command and argument suggestions
-- **Modern Development**: Vite-based build system for fast development
+- [Getting Started](#getting-started)
+- [Core Concepts](#core-concepts)
+- [API Reference](#api-reference)
+  - [`<TerminalView />`](#terminalview--component)
+  - [`useTerminal()`](#useterminal--hook)
+- [Guides](#guides)
+  - [Creating Commands](#creating-commands)
+  - [Theming](#theming)
+  - [Customization (Render Props)](#customization-render-props)
 
-## 📦 Installation
+## Getting Started
 
-### Option 1: Clone and Run Locally
-
-```bash
-# Clone the repository
-git clone https://github.com/MyriadColors/terminus-framework.git
-cd terminus-framework
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-### Option 2: Use as a Library
+To get started with Terminus, install the package and set up your `App.tsx`:
 
 ```bash
-# Install as a dependency in your project
 npm install terminus-framework
+# or
+yarn add terminus-framework
+# or
+bun add terminus-framework
 ```
 
-## 🏗️ Architecture
+```typescript
+// App.tsx
+import React from "react";
+import {
+  TerminalProvider,
+  TerminalView,
+  useTerminalStore,
+  ThemeStyle,
+} from "terminus-framework";
+import { defaultCommands } from "./commands"; // Your command definitions
 
-Terminus is built with a modular architecture:
-
-```
-terminus-framework/
-├── components/          # React components
-│   ├── TerminalView.tsx # Main terminal interface
-│   └── InputLine.tsx    # Command input component
-├── contexts/            # React context providers
-│   ├── TerminalProvider.tsx
-│   └── ThemeContext.tsx
-├── commands/            # Built-in commands
-│   ├── help.tsx
-│   ├── clear.tsx
-│   ├── echo.tsx
-│   └── theme.tsx
-├── services/            # Business logic
-│   ├── commandRegistry.ts
-│   ├── commandParser.ts
-│   └── autocompleteService.ts
-├── store/               # State management
-│   └── terminalStore.ts
-├── styles/              # Theme definitions
-│   └── themes.ts
-└── types.ts              # TypeScript definitions
-```
-
-### Core Concepts
-
-- **Commands**: Executable functions that users can run in the terminal
-- **Context**: Information and APIs available to commands during execution
-- **Themes**: Styling configurations for customizing the terminal appearance
-- **Store**: Zustand-based state management for terminal state
-
-## 🛠️ Quick Start
-
-### Basic Usage
-
-```tsx
-import React from 'react';
-import { TerminalProvider, TerminalView, Command } from 'terminus-framework';
-import { helpCommand, clearCommand } from 'terminus-framework/commands';
-
-const customCommand: Command = {
-  name: 'greet',
-  description: 'Greet someone',
-  args: [
-    {
-      name: 'name',
-      description: 'Name to greet',
-      required: true,
-      type: 'string'
-    }
-  ],
-  handler: (args, context) => {
-    return React.createElement('p', null, `Hello, ${args.name}!`);
-  }
-};
-
-const MyApp: React.FC = () => {
+const WelcomeMessage = () => {
+  const theme: ThemeStyle = useTerminalStore(
+    (state) => state.themes[state.themeName] || state.themes.default
+  );
   return (
-    <TerminalProvider
-      commands={[helpCommand, clearCommand, customCommand]}
-      welcomeMessage={<div>Welcome to my custom terminal!</div>}
-      initialTheme="default"
-    >
-      <div className="min-h-screen bg-gray-900 text-green-400 p-4">
-        <h1 className="text-2xl mb-4">My Custom Terminal</h1>
-        <TerminalView />
-      </div>
-    </TerminalProvider>
+    <div>
+      <p className={theme.textPrimary}>Welcome to Terminus!</p>
+      <p>This is a React-based framework for building interactive TUIs.</p>
+      <p>
+        Type <span className={theme.textSecondary}>'help'</span> to see a list
+        of available commands.
+      </p>
+    </div>
   );
 };
 
-export default MyApp;
-```
+const AppLayout: React.FC = () => {
+  const theme: ThemeStyle = useTerminalStore(
+    (state) => state.themes[state.themeName] || state.themes.default
+  );
 
-## 🎨 Theming
-
-Terminus supports multiple themes out of the box. You can also create custom themes:
-
-```tsx
-import { ThemeStyle } from 'terminus-framework';
-
-const customTheme: ThemeStyle = {
-  appBg: 'bg-purple-900',
-  appText: 'text-purple-100',
-  header: 'text-purple-200',
-  textPrimary: 'text-purple-100',
-  textSecondary: 'text-purple-300',
-  textFaded: 'text-purple-400',
-  textError: 'text-red-400',
-  inputBg: 'bg-purple-800',
-  inputText: 'text-purple-100',
-  inputBorder: 'border-purple-600',
-  buttonPrimary: 'bg-purple-600 hover:bg-purple-700 text-white',
-  buttonSecondary: 'bg-purple-700 hover:bg-purple-800 text-purple-100',
+  return (
+    <main
+      className={`font-mono ${theme.appBg} ${theme.appText} min-h-screen transition-colors duration-300`}
+    >
+      <div className="container mx-auto p-4">
+        <h1 className={`text-2xl md:text-4xl ${theme.header} font-bold mb-4`}>
+          Terminus
+        </h1>
+        <p className={`${theme.textFaded} mb-6`}>
+          A React-based framework for interactive terminal applications. Type
+          'help' to see available commands.
+        </p>
+        <TerminalView />
+      </div>
+    </main>
+  );
 };
 
-const MyApp: React.FC = () => {
+const App: React.FC = () => {
   return (
     <TerminalProvider
       commands={defaultCommands}
-      customThemes={{ myTheme: customTheme }}
-      initialTheme="myTheme"
+      welcomeMessage={<WelcomeMessage />}
+      initialTheme="default"
     >
-      <TerminalView />
+      <AppLayout />
+    </TerminalProvider>
+  );
+};
+
+export default App;
+```
+
+## Core Concepts
+
+Terminus operates on a Provider/Hook model:
+
+- **`<TerminalProvider>`**: This component wraps your application and provides the terminal's state and actions to its children via React Context.
+- **`useTerminal()`**: This hook allows any component within the `TerminalProvider`'s scope to interact with the terminal, such as printing output, running commands, or changing the theme.
+
+## API Reference
+
+### `<TerminalView />` Component
+
+This component renders the main terminal interface.
+
+**Props:**
+
+- `renderPrompt?: (path: string) => React.ReactNode;`
+  A render prop to customize the terminal prompt. Receives the current path as an argument.
+- `renderHistoryItem?: (item: HistoryItem) => React.ReactNode;`
+  A render prop to customize how each history item (command and its output) is displayed.
+
+### `useTerminal()` Hook
+
+Provides access to the terminal's state and actions.
+
+**Return Value:**
+
+```typescript
+interface UseTerminalResult {
+  state: {
+    history: HistoryItem[];
+    currentTheme: ThemeStyle;
+    availableThemes: string[];
+    currentPath: string;
+    isBusy: boolean;
+  };
+  print: (output: React.ReactNode) => void;
+  run: (command: string) => void;
+  clear: () => void;
+  setTheme: (themeNameOrObject: string | ThemeStyle) => void;
+  registerCommand: (command: Command) => void;
+  setCurrentPath: (path: string) => void;
+}
+```
+
+## Guides
+
+### Creating Commands
+
+Commands are defined as objects conforming to the `Command` interface. They can be synchronous or asynchronous.
+
+```typescript
+// Example basic command
+import React from "react";
+import { Command, CommandContext, CommandResult } from "terminus-framework";
+
+export const helloCommand: Command = {
+  name: "hello",
+  description: "Says hello",
+  handler: (args, context): CommandResult => {
+    return { success: true, output: <p>Hello, world!</p> };
+  },
+};
+
+// Example async command
+export const asyncCommand: Command = {
+  name: "async",
+  description: "Demonstrates asynchronous command handling",
+  handler: async (args, context): Promise<CommandResult> => {
+    context.print("Starting long running task...");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return { success: true, output: <p>Task completed!</p> };
+  },
+};
+
+// Example command with arguments
+export const greetCommand: Command = {
+  name: "greet",
+  description: "Greets a person",
+  args: [
+    { name: "name", description: "The name to greet", required: true },
+    {
+      name: "loud",
+      description: "If true, greets loudly",
+      type: "boolean",
+      defaultValue: false,
+    },
+  ],
+  handler: (args, context): CommandResult => {
+    const greeting = args.loud
+      ? `HELLO, ${args.name.toUpperCase()}!`
+      : `Hello, ${args.name}!`;
+    return { success: true, output: <p>{greeting}</p> };
+  },
+};
+```
+
+Register your commands with the `TerminalProvider`:
+
+```typescript
+import { TerminalProvider } from "terminus-framework";
+import { helloCommand, asyncCommand, greetCommand } from "./commands";
+
+const allCommands = [helloCommand, asyncCommand, greetCommand];
+
+const App: React.FC = () => {
+  return (
+    <TerminalProvider commands={allCommands}>{/* ... */}</TerminalProvider>
+  );
+};
+```
+
+Or dynamically using `registerCommand` from `useTerminal`:
+
+```typescript
+import React, { useEffect } from "react";
+import { useTerminal, Command } from "terminus-framework";
+
+const MyComponent: React.FC = () => {
+  const { registerCommand } = useTerminal();
+
+  useEffect(() => {
+    const dynamicCommand: Command = {
+      name: "dynamic",
+      description: "A dynamically registered command",
+      handler: (args, context) => {
+        return {
+          success: true,
+          output: <p>This command was registered at runtime!</p>,
+        };
+      },
+    };
+    registerCommand(dynamicCommand);
+  }, [registerCommand]);
+
+  return null;
+};
+```
+
+### Theming
+
+You can customize the terminal's appearance by providing `initialTheme` and `themes` props to `TerminalProvider`.
+
+```typescript
+import { TerminalProvider, ThemeStyle } from "terminus-framework";
+
+const myCustomTheme: ThemeStyle = {
+  name: "my-custom-theme",
+  appBg: "bg-blue-900",
+  appText: "text-blue-100",
+  header: "text-yellow-400",
+  terminalBg: "bg-blue-800",
+  terminalBorder: "border-blue-600",
+  terminalFocusRing: "focus:ring-yellow-500",
+  terminalText: "text-blue-200",
+  promptSymbol: "text-yellow-400",
+  cursorBg: "bg-yellow-400",
+  inlineHintText: "text-blue-500",
+  textPrimary: "text-yellow-400",
+  textSecondary: "text-orange-300",
+  textTertiary: "text-cyan-400",
+  textError: "text-red-500",
+  textFaded: "text-blue-400",
+};
+
+const App: React.FC = () => {
+  return (
+    <TerminalProvider
+      commands={[]}
+      initialTheme="my-custom-theme"
+      themes={{ "my-custom-theme": myCustomTheme }}
+    >
+      {/* ... */}
     </TerminalProvider>
   );
 };
 ```
 
-## ⚡ Creating Custom Commands
+You can also change themes dynamically using `setTheme` from `useTerminal`:
 
-Commands are the core building blocks of Terminus applications. Each command has:
+```typescript
+import React from "react";
+import { useTerminal } from "terminus-framework";
 
-- A name and description
-- Optional arguments with types and validation
-- A handler function that processes the command and returns React elements
+const ThemeSwitcher: React.FC = () => {
+  const { setTheme } = useTerminal();
 
-### Simple Command
-
-```tsx
-import { Command } from 'terminus-framework';
-
-export const helloCommand: Command = {
-  name: 'hello',
-  description: 'Print a hello message',
-  handler: (args, context) => {
-    return React.createElement('p', null, 'Hello, World!');
-  }
-};
-```
-
-### Command with Arguments
-
-```tsx
-export const echoCommand: Command = {
-  name: 'echo',
-  description: 'Echo back the provided text',
-  args: [
-    {
-      name: 'text',
-      description: 'Text to echo',
-      required: true,
-      type: 'string'
-    },
-    {
-      name: 'count',
-      description: 'Number of times to echo',
-      type: 'number',
-      defaultValue: 1
-    }
-  ],
-  handler: (args, context) => {
-    const { text, count } = args;
-    const elements = [];
-
-    for (let i = 0; i < count; i++) {
-      elements.push(React.createElement('p', { key: i }, text));
-    }
-
-    return React.createElement('div', null, ...elements);
-  }
-};
-```
-
-### Command with Context API
-
-```tsx
-export const themeCommand: Command = {
-  name: 'theme',
-  description: 'Switch terminal theme',
-  args: [
-    {
-      name: 'name',
-      description: 'Theme name to switch to',
-      type: 'string'
-    }
-  ],
-  handler: (args, context) => {
-    if (args.name) {
-      const newTheme = context.setTheme(args.name);
-      if (newTheme) {
-        return React.createElement('p', null, `Switched to theme: ${args.name}`);
-      } else {
-        return React.createElement('p', { className: context.theme.textError },
-          `Theme '${args.name}' not found. Available themes: ${context.availableThemes.join(', ')}`);
-      }
-    } else {
-      return React.createElement('div', null,
-        React.createElement('p', null, `Current theme: ${context.theme}`),
-        React.createElement('p', null, `Available themes: ${context.availableThemes.join(', ')}`)
-      );
-    }
-  }
-};
-```
-
-## 🔧 Built-in Commands
-
-Terminus comes with several built-in commands:
-
-- `help` - Display available commands and their descriptions
-- `clear` - Clear the terminal history
-- `echo` - Echo back provided text
-- `theme` - Switch between available themes
-
-## 🎯 Advanced Usage
-
-### Using the Context API
-
-Commands have access to a rich context object that provides:
-
-- `clear()` - Clear terminal history
-- `theme` - Current theme object
-- `setTheme(name)` - Switch to a different theme
-- `availableThemes` - Array of available theme names
-- `getAllCommands()` - Get all registered commands
-- `getCommand(name)` - Get a specific command by name
-
-### Custom Command Registry
-
-```tsx
-import { CommandRegistry } from 'terminus-framework/services/commandRegistry';
-
-const registry = new CommandRegistry();
-registry.register(myCustomCommand);
-registry.register(anotherCommand);
-
-// Use with TerminalProvider
-<TerminalProvider registry={registry} />
-```
-
-### Input Handling
-
-The framework provides hooks for advanced input handling:
-
-```tsx
-import { useCommandInput } from 'terminus-framework/hooks/useCommandInput';
-
-const MyTerminalComponent: React.FC = () => {
-  const { inputValue, setInputValue, handleKeyDown } = useCommandInput();
+  const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTheme(e.target.value);
+  };
 
   return (
-    <input
-      value={inputValue}
-      onChange={(e) => setInputValue(e.target.value)}
-      onKeyDown={handleKeyDown}
-      className="terminal-input"
+    <select onChange={handleThemeChange}>
+      <option value="default">Default</option>
+      <option value="light">Light</option>
+      {/* Add your custom themes here */}
+    </select>
+  );
+};
+```
+
+### Customization (Render Props)
+
+Customize the appearance of the prompt and history items using `renderPrompt` and `renderHistoryItem` props on `<TerminalView />`.
+
+```typescript
+import React from "react";
+import {
+  TerminalView,
+  HistoryItem,
+  useTerminalStore,
+  ThemeStyle,
+} from "terminus-framework";
+
+const CustomPrompt: React.FC<{ path: string }> = ({ path }) => {
+  const theme: ThemeStyle = useTerminalStore(
+    (state) => state.themes[state.themeName] || state.themes.default
+  );
+  return (
+    <span className={`${theme.promptSymbol} mr-2`}>
+      <span className="font-bold">{path}</span> &gt;
+    </span>
+  );
+};
+
+const CustomHistoryItem: React.FC<{ item: HistoryItem }> = ({ item }) => {
+  const theme: ThemeStyle = useTerminalStore(
+    (state) => state.themes[state.themeName] || state.themes.default
+  );
+  const outputClassName = item.type === "error" ? theme.textError : "";
+
+  return (
+    <div>
+      <div className="flex items-center">
+        <span className={`${theme.promptSymbol} mr-2`}>&gt;</span>
+        <span className="flex-1">{item.command}</span>
+      </div>
+      <div className={`leading-snug ${outputClassName}`}>{item.output}</div>
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <TerminalView
+      renderPrompt={(path) => <CustomPrompt path={path} />}
+      renderHistoryItem={(item) => <CustomHistoryItem item={item} />}
     />
   );
 };
 ```
-
-## 🚀 Development
-
-### Project Structure for Custom Applications
-
-When building applications on top of Terminus, consider this structure:
-
-```
-my-terminal-app/
-├── src/
-│   ├── commands/        # Your custom commands
-│   │   ├── user.tsx
-│   │   ├── system.tsx
-│   │   └── utils.tsx
-│   ├── themes/          # Custom themes
-│   │   └── customTheme.ts
-│   ├── components/      # Additional UI components
-│   ├── App.tsx          # Main application component
-│   └── main.tsx         # Application entry point
-├── package.json
-└── vite.config.ts
-```
-
-### Building and Deployment
-
-```bash
-# Development
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Built with React and TypeScript
-- State management powered by Zustand
-- Development tooling by Vite
-- Inspired by modern terminal applications
