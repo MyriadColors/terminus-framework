@@ -1,4 +1,4 @@
-import { Command, CommandResult } from '../types';
+import { Command, CommandResult } from "@/types";
 
 // Helper function to validate and parse numbers
 const validateAndParseNumbers = (args: string[]): number[] => {
@@ -166,3 +166,11 @@ export const divideCommand: Command = {
     }
   }
 };
+
+// Unified command export for all calculator commands
+export const calculatorCommands: Command[] = [
+  addCommand,
+  subtractCommand,
+  multiplyCommand,
+  divideCommand
+];

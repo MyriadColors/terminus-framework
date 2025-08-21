@@ -1,343 +1,143 @@
 # Terminus Framework
 
-Terminus is a React-based framework for building interactive terminal user interfaces (TUIs).
+Terminus is a React-based framework for building interactive terminal user interfaces (TUIs). Unlike traditional terminal applications, Terminus allows you to create rich, web-based terminal experiences using familiar React patterns.
+
+**Note**: Terminus Framework is currently intended to be used by cloning or forking this repository rather than as an npm package. In the future, we plan to make it available as a proper library that can be installed via npm.
 
 ## Table of Contents
 
+- [Features](#features)
 - [Getting Started](#getting-started)
-- [Core Concepts](#core-concepts)
-- [API Reference](#api-reference)
-  - [`<TerminalView />`](#terminalview--component)
-  - [`useTerminal()`](#useterminal--hook)
-- [Guides](#guides)
-  - [Creating Commands](#creating-commands)
-  - [Theming](#theming)
-  - [Customization (Render Props)](#customization-render-props)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Examples](#examples)
+- [Contributing](#contributing)
+
+## Features
+
+- **React-based**: Build terminal interfaces using React components and hooks
+- **Declarative Output System**: Clean separation between what to display and how to render it
+- **Theming Support**: Easily customize the look and feel of your terminal
+- **Command System**: Create simple or complex commands with argument parsing
+- **Asynchronous Support**: Handle long-running operations without blocking the UI
+- **Customizable Rendering**: Full control over prompt and history item rendering
+- **TypeScript Support**: First-class TypeScript support with comprehensive type definitions
 
 ## Getting Started
 
-To get started with Terminus, install the package and set up your `App.tsx`:
+To get started with Terminus Framework:
 
-```bash
-npm install terminus-framework
-# or
-yarn add terminus-framework
-# or
-bun add terminus-framework
+1. Clone or fork this repository:
+
+   ```bash
+   git clone https://github.com/your-username/terminus-framework.git
+   cd terminus-framework
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   bun install
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   bun dev
+   ```
+
+4. Open your browser to the URL provided in the terminal (typically http://localhost:5173)
+
+## Project Structure
+
+```
+terminus-framework/
+├── apps/                 # User applications and commands
+│   ├── examples/         # Example applications (like calculator)
+│   ├── [your-app]/       # Your custom applications
+│   └── README.md         # Documentation for apps directory
+├── commands/             # Core framework commands
+├── components/           # React components
+├── contexts/             # React contexts
+├── docs/                 # Documentation
+├── App.tsx               # Main application component
+└── ...
 ```
 
-```typescript
-// App.tsx
-import React from "react";
-import {
-  TerminalProvider,
-  TerminalView,
-  useTerminalStore,
-  ThemeStyle,
-} from "terminus-framework";
-import { defaultCommands } from "./commands"; // Your command definitions
+### Adding Your Own Commands
 
-const WelcomeMessage = () => {
-  const theme: ThemeStyle = useTerminalStore(
-    (state) => state.themes[state.themeName] || state.themes.default
-  );
-  return (
-    <div>
-      <p className={theme.textPrimary}>Welcome to Terminus!</p>
-      <p>This is a React-based framework for building interactive TUIs.</p>
-      <p>
-        Type <span className={theme.textSecondary}>'help'</span> to see a list
-        of available commands.
-      </p>
-    </div>
-  );
-};
+1. Create a new directory in the `apps/` folder for your application:
 
-const AppLayout: React.FC = () => {
-  const theme: ThemeStyle = useTerminalStore(
-    (state) => state.themes[state.themeName] || state.themes.default
-  );
+   ```bash
+   mkdir apps/my-app
+   ```
 
-  return (
-    <main
-      className={`font-mono ${theme.appBg} ${theme.appText} min-h-screen transition-colors duration-300`}
-    >
-      <div className="container mx-auto p-4">
-        <h1 className={`text-2xl md:text-4xl ${theme.header} font-bold mb-4`}>
-          Terminus
-        </h1>
-        <p className={`${theme.textFaded} mb-6`}>
-          A React-based framework for interactive terminal applications. Type
-          'help' to see available commands.
-        </p>
-        <TerminalView />
-      </div>
-    </main>
-  );
-};
+2. Create your command files in your app directory:
 
-const App: React.FC = () => {
-  return (
-    <TerminalProvider
-      commands={defaultCommands}
-      welcomeMessage={<WelcomeMessage />}
-      initialTheme="default"
-    >
-      <AppLayout />
-    </TerminalProvider>
-  );
-};
+   ```bash
+   # apps/my-app/my-commands.tsx
+   import { Command } from '../../types';
 
-export default App;
-```
+   export const myCommand: Command = {
+     name: 'my-command',
+     description: 'An example custom command',
+     handler: (args, context) => {
+       return {
+         success: true,
+         output: context.printLine('Hello from my custom command!')
+       };
+     }
+   };
+   ```
 
-## Core Concepts
+3. Import and register your commands in `App.tsx`:
 
-Terminus operates on a Provider/Hook model:
+   ```typescript
+   import { myCommand } from "./apps/my-app/my-commands";
 
-- **`<TerminalProvider>`**: This component wraps your application and provides the terminal's state and actions to its children via React Context.
-- **`useTerminal()`**: This hook allows any component within the `TerminalProvider`'s scope to interact with the terminal, such as printing output, running commands, or changing the theme.
+   const allCommands = [...defaultCommands, myCommand];
 
-## API Reference
+   // Then pass allCommands to TerminalProvider
+   ```
 
-### `<TerminalView />` Component
+## Documentation
 
-This component renders the main terminal interface.
+To help you get the most out of Terminus, we've prepared several documentation resources:
 
-**Props:**
+- **[User Guide](./docs/UserGuide.md)** - Comprehensive guide covering everything from basic setup to advanced features
+- **[Declarative Output Reference](./docs/declarative_output.md)** - Technical reference for the declarative output system
+- **API Documentation** - Detailed information about components, hooks, and types (included in the User Guide)
 
-- `renderPrompt?: (path: string) => React.ReactNode;`
-  A render prop to customize the terminal prompt. Receives the current path as an argument.
-- `renderHistoryItem?: (item: HistoryItem) => React.ReactNode;`
-  A render prop to customize how each history item (command and its output) is displayed.
+## Examples
 
-### `useTerminal()` Hook
+Check out the examples in the `apps/examples/` directory to see how to:
 
-Provides access to the terminal's state and actions.
+- Create commands with various argument types
+- Use the declarative output system
+- Implement custom themes
+- Handle asynchronous operations
 
-**Return Value:**
+The `calculator.tsx` example demonstrates a complete calculator application with add, subtract, multiply, and divide commands.
 
-```typescript
-interface UseTerminalResult {
-  state: {
-    history: HistoryItem[];
-    currentTheme: ThemeStyle;
-    availableThemes: string[];
-    currentPath: string;
-    isBusy: boolean;
-  };
-  print: (output: React.ReactNode) => void;
-  run: (command: string) => void;
-  clear: () => void;
-  setTheme: (themeNameOrObject: string | ThemeStyle) => void;
-  registerCommand: (command: Command) => void;
-  setCurrentPath: (path: string) => void;
-}
-```
+## Contributing
 
-## Guides
+We welcome contributions to Terminus! If you're interested in helping improve the framework, please:
 
-### Creating Commands
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-Commands are defined as objects conforming to the `Command` interface. They can be synchronous or asynchronous.
+For bug reports or feature requests, please open an issue on the GitHub repository.
 
-```typescript
-// Example basic command
-import React from "react";
-import { Command, CommandContext, CommandResult } from "terminus-framework";
+## License
 
-export const helloCommand: Command = {
-  name: "hello",
-  description: "Says hello",
-  handler: (args, context): CommandResult => {
-    return { success: true, output: <p>Hello, world!</p> };
-  },
-};
-
-// Example async command
-export const asyncCommand: Command = {
-  name: "async",
-  description: "Demonstrates asynchronous command handling",
-  handler: async (args, context): Promise<CommandResult> => {
-    context.print("Starting long running task...");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return { success: true, output: <p>Task completed!</p> };
-  },
-};
-
-// Example command with arguments
-export const greetCommand: Command = {
-  name: "greet",
-  description: "Greets a person",
-  args: [
-    { name: "name", description: "The name to greet", required: true },
-    {
-      name: "loud",
-      description: "If true, greets loudly",
-      type: "boolean",
-      defaultValue: false,
-    },
-  ],
-  handler: (args, context): CommandResult => {
-    const greeting = args.loud
-      ? `HELLO, ${args.name.toUpperCase()}!`
-      : `Hello, ${args.name}!`;
-    return { success: true, output: <p>{greeting}</p> };
-  },
-};
-```
-
-Register your commands with the `TerminalProvider`:
-
-```typescript
-import { TerminalProvider } from "terminus-framework";
-import { helloCommand, asyncCommand, greetCommand } from "./commands";
-
-const allCommands = [helloCommand, asyncCommand, greetCommand];
-
-const App: React.FC = () => {
-  return (
-    <TerminalProvider commands={allCommands}>{/* ... */}</TerminalProvider>
-  );
-};
-```
-
-Or dynamically using `registerCommand` from `useTerminal`:
-
-```typescript
-import React, { useEffect } from "react";
-import { useTerminal, Command } from "terminus-framework";
-
-const MyComponent: React.FC = () => {
-  const { registerCommand } = useTerminal();
-
-  useEffect(() => {
-    const dynamicCommand: Command = {
-      name: "dynamic",
-      description: "A dynamically registered command",
-      handler: (args, context) => {
-        return {
-          success: true,
-          output: <p>This command was registered at runtime!</p>,
-        };
-      },
-    };
-    registerCommand(dynamicCommand);
-  }, [registerCommand]);
-
-  return null;
-};
-```
-
-### Theming
-
-You can customize the terminal's appearance by providing `initialTheme` and `themes` props to `TerminalProvider`.
-
-```typescript
-import { TerminalProvider, ThemeStyle } from "terminus-framework";
-
-const myCustomTheme: ThemeStyle = {
-  name: "my-custom-theme",
-  appBg: "bg-blue-900",
-  appText: "text-blue-100",
-  header: "text-yellow-400",
-  terminalBg: "bg-blue-800",
-  terminalBorder: "border-blue-600",
-  terminalFocusRing: "focus:ring-yellow-500",
-  terminalText: "text-blue-200",
-  promptSymbol: "text-yellow-400",
-  cursorBg: "bg-yellow-400",
-  inlineHintText: "text-blue-500",
-  textPrimary: "text-yellow-400",
-  textSecondary: "text-orange-300",
-  textTertiary: "text-cyan-400",
-  textError: "text-red-500",
-  textFaded: "text-blue-400",
-};
-
-const App: React.FC = () => {
-  return (
-    <TerminalProvider
-      commands={[]}
-      initialTheme="my-custom-theme"
-      themes={{ "my-custom-theme": myCustomTheme }}
-    >
-      {/* ... */}
-    </TerminalProvider>
-  );
-};
-```
-
-You can also change themes dynamically using `setTheme` from `useTerminal`:
-
-```typescript
-import React from "react";
-import { useTerminal } from "terminus-framework";
-
-const ThemeSwitcher: React.FC = () => {
-  const { setTheme } = useTerminal();
-
-  const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTheme(e.target.value);
-  };
-
-  return (
-    <select onChange={handleThemeChange}>
-      <option value="default">Default</option>
-      <option value="light">Light</option>
-      {/* Add your custom themes here */}
-    </select>
-  );
-};
-```
-
-### Customization (Render Props)
-
-Customize the appearance of the prompt and history items using `renderPrompt` and `renderHistoryItem` props on `<TerminalView />`.
-
-```typescript
-import React from "react";
-import {
-  TerminalView,
-  HistoryItem,
-  useTerminalStore,
-  ThemeStyle,
-} from "terminus-framework";
-
-const CustomPrompt: React.FC<{ path: string }> = ({ path }) => {
-  const theme: ThemeStyle = useTerminalStore(
-    (state) => state.themes[state.themeName] || state.themes.default
-  );
-  return (
-    <span className={`${theme.promptSymbol} mr-2`}>
-      <span className="font-bold">{path}</span> &gt;
-    </span>
-  );
-};
-
-const CustomHistoryItem: React.FC<{ item: HistoryItem }> = ({ item }) => {
-  const theme: ThemeStyle = useTerminalStore(
-    (state) => state.themes[state.themeName] || state.themes.default
-  );
-  const outputClassName = item.type === "error" ? theme.textError : "";
-
-  return (
-    <div>
-      <div className="flex items-center">
-        <span className={`${theme.promptSymbol} mr-2`}>&gt;</span>
-        <span className="flex-1">{item.command}</span>
-      </div>
-      <div className={`leading-snug ${outputClassName}`}>{item.output}</div>
-    </div>
-  );
-};
-
-const App: React.FC = () => {
-  return (
-    <TerminalView
-      renderPrompt={(path) => <CustomPrompt path={path} />}
-      renderHistoryItem={(item) => <CustomHistoryItem item={item} />}
-    />
-  );
-};
-```
+MIT

@@ -6,6 +6,16 @@ import { defaultCommands } from './commands';
 import { useTerminalStore } from './index';
 import { ThemeStyle } from './index';
 
+// You can add your own commands here by importing them from your own file.
+import { calculatorCommands } from './apps/examples/calculator';
+
+// Combine all the commands into a single array for easier access and usage.
+const allCommands = [
+  ...defaultCommands,
+  ...calculatorCommands, // Here we are adding the calculator commands as an example.
+  // Add your own commands here...
+]
+
 const WelcomeMessage = () => {
   const theme: ThemeStyle = useTerminalStore((state) => state.themes[state.themeName] || state.themes.default);
   return (
@@ -39,7 +49,7 @@ const AppLayout: React.FC = () => {
 const App: React.FC = () => {
   return (
     <TerminalProvider 
-      commands={defaultCommands} 
+      commands={allCommands} 
       welcomeMessage={<WelcomeMessage />} 
       initialTheme="default"
     >
