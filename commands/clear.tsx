@@ -5,7 +5,7 @@ export const clearCommand: Command = {
   description: 'Clears the terminal screen.',
   aliases: ['cls', 'clr'],
   handler: (args, context) => {
-    context.clearHistory();
+    context.clear();
     return null;
   }
 };

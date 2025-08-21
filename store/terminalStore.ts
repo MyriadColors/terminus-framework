@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import React from 'react';
-import { HistoryItem, TerminalContext } from '../types';
+import { HistoryItem, Command, CommandContext } from '../types';
 import { CommandRegistry } from '../services/commandRegistry';
 import { parseCommand } from '../services/commandParser';
 import { ThemeStyle, defaultThemes } from '../styles/themes';
@@ -9,6 +9,7 @@ import { ThemeStyle, defaultThemes } from '../styles/themes';
 interface TerminalState {
   history: HistoryItem[];
   commandHistory: string[];
+  welcomeMessage?: React.ReactNode;
 }
 
 interface InputState {
@@ -28,6 +29,7 @@ interface TerminalActions {
   clearHistory: () => void;
   addCommandToHistory: (command: string) => void;
   submitCommand: (commandStr: string) => void;
+  setWelcomeMessage: (message?: React.ReactNode) => void;
 }
 
 interface InputActions {
@@ -40,18 +42,27 @@ interface InputActions {
 
 interface ThemeActions {
     setThemeName: (name: string) => ThemeStyle | undefined;
-    _setThemeNameInternal: (name: string) => void;
 }
 
 export type FullStoreState = TerminalState & InputState & ThemeState & TerminalActions & InputActions & ThemeActions;
 
-export const createTerminalStore = (
-  registry: CommandRegistry,
-  onThemeChange: (name: string) => void
-) => create<FullStoreState>((set, get) => ({
+export interface CreateStoreOptions {
+  registry: CommandRegistry;
+  initialTheme?: string;
+  customThemes?: Record<string, ThemeStyle>;
+  welcomeMessage?: React.ReactNode;
+}
+
+export const createTerminalStore = ({
+  registry,
+  initialTheme = 'default',
+  customThemes = {},
+  welcomeMessage,
+}: CreateStoreOptions) => create<FullStoreState>((set, get) => ({
   // Terminal State
   history: [],
   commandHistory: [],
+  welcomeMessage,
 
   // Input State
   inputValue: '',
@@ -60,8 +71,8 @@ export const createTerminalStore = (
   suggestionIndex: -1,
 
   // Theme State
-  themeName: 'default',
-  themes: defaultThemes,
+  themeName: initialTheme,
+  themes: { ...defaultThemes, ...customThemes },
 
   // Terminal Actions
   addHistoryItem: (command, output) => {
@@ -98,12 +109,13 @@ export const createTerminalStore = (
     if (command) {
       try {
         const availableThemes = Object.keys(get().themes);
-        const context: TerminalContext = { 
-            clearHistory: get().clearHistory, 
+        const context: CommandContext = { 
+            clear: get().clearHistory, 
             theme: theme, 
             availableThemes,
             setTheme: get().setThemeName,
-            registry: registry,
+            getAllCommands: (): Command[] => registry.getAll(),
+            getCommand: (name: string): Command | undefined => registry.get(name),
         };
 
         const args = parseCommand(commandStr, command.args);
@@ -119,6 +131,8 @@ export const createTerminalStore = (
       get().addHistoryItem(commandStr, React.createElement('p', { className: theme.textError }, `Command not found: '${commandName}'. Type 'help' for a list of commands.`));
     }
   },
+  
+  setWelcomeMessage: (message) => set({ welcomeMessage: message }),
 
   // Input Actions
   setInputValue: (value) => set({ inputValue: value }),
@@ -132,17 +146,8 @@ export const createTerminalStore = (
     const themes = get().themes;
     if (themes[name]) {
         set({ themeName: name });
-        onThemeChange(name); // Notify the parent component
         return themes[name];
     }
     return undefined;
   },
-
-  // Used to sync theme from parent prop without triggering callback loop
-  _setThemeNameInternal: (name: string) => {
-    const themes = get().themes;
-    if (themes[name]) {
-        set({ themeName: name });
-    }
-  }
 }));

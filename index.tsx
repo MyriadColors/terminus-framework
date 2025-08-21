@@ -1,15 +1,21 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+/**
+ * Terminus TUI Framework - Public API
+ */
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
+// Core Components for rendering the terminal
+export { default as TerminalProvider } from './contexts/TerminalProvider';
+export { default as TerminalView } from './components/TerminalView';
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Main hook for programmatic control over the terminal
+export { useTerminal } from './hooks/useTerminal';
+export type { UseTerminalResult, TerminalState, TerminalActions } from './hooks/useTerminal';
+
+// Public types for creating commands and custom themes
+export type { 
+    Command, 
+    CommandArg, 
+    CommandHandler,
+    CommandContext,
+    HistoryItem, 
+    ThemeStyle 
+} from './types';

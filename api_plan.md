@@ -2,8 +2,6 @@
 
 Exposing a well-designed API is critical for turning a project into a successful library. The goal is to create a developer experience (DX) that is intuitive, flexible, and powerful, while hiding the internal complexity.
 
-Here is a breakdown of a proposed API structure for `Terminus`, along with the necessary preparatory steps.
-
 ## I. Guiding Principles for the API
 
 1.  **Declarative and Component-Based:** Developers should define *what* they want the terminal to do, not *how* it does it. The API should be built around React components and hooks, which is idiomatic for the ecosystem.
@@ -92,7 +90,7 @@ function RealtimeStatusIndicator() {
 ### 4. Type Exports
 
 To ensure a good TypeScript experience, we must export all necessary types for developers:
-`Command`, `CommandArg`, `TerminalContext`, `HistoryItem`, `ThemeStyle`.
+`Command`, `CommandArg`, `CommandContext`, `HistoryItem`, `ThemeStyle`.
 
 ---
 
@@ -100,11 +98,11 @@ To ensure a good TypeScript experience, we must export all necessary types for d
 
 To achieve this API, the current codebase would need some restructuring:
 
-1.  **Isolate State Management:** The logic inside `Terminal.tsx` that creates the Zustand store (`createTerminalStore`) should be moved into the new `<TerminalProvider>` component. This provider will be the single source of truth.
-2.  **Create the Public Hook:** A new `useTerminal()` hook needs to be created. It will call the internal `useTerminalStore` hook but will expose a more stable and curated API (`print` instead of the internal `addHistoryItem`, for example). This abstraction layer is crucial for long-term maintenance.
+1.  **Isolate State Management:** The logic inside `Terminal.tsx` that creates the Zustand store (`createTerminalStore`) should be moved into the new `<TerminalProvider>` component. This provider will be the single source of truth. (COMPLETE)
+2.  **Create the Public Hook:** A new `useTerminal()` hook needs to be created. It will call the internal `useTerminalStore` hook but will expose a more stable and curated API (`print` instead of the internal `addHistoryItem`, for example). This abstraction layer is crucial for long-term maintenance. (COMPLETE)
 3.  **Separate UI from Logic:**
-    *   The current `<Terminal>` component will be split. Its state/context logic goes into `<TerminalProvider>`.
-    *   Its rendering logic (the current `<TerminalDisplay>`) will become the new public `<TerminalView>` component.
-4.  **Establish a Library Entry Point:** Create a main `index.ts` file at the root of the library source that explicitly exports *only* the public API: `<TerminalProvider>`, `<TerminalView>`, `useTerminal()`, and the public types. Internal components like `InputLine` or services like `commandParser` would not be exported, keeping the public surface clean and manageable.
+    *   The current `<Terminal>` component will be split. Its state/context logic goes into `<TerminalProvider>`. (COMPLETE)
+    *   Its rendering logic (the current `<TerminalDisplay>`) will become the new public `<TerminalView>` component. (COMPLETE)
+4.  **Establish a Library Entry Point:** Create a main `index.ts` file at the root of the library source that explicitly exports *only* the public API: `<TerminalProvider>`, `<TerminalView>`, `useTerminal()`, and the public types. Internal components like `InputLine` or services like `commandParser` would not be exported, keeping the public surface clean and manageable. (COMPLETE)
 
 By following this plan, we can transform the existing application into a robust, extensible, and developer-friendly library for building powerful TUI applications in React.

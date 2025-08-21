@@ -1,6 +1,5 @@
 import React from 'react';
 import type { ThemeStyle } from './styles/themes';
-import { CommandRegistry } from './services/commandRegistry';
 
 export type { ThemeStyle };
 
@@ -14,17 +13,22 @@ export interface CommandArg {
   type?: 'string' | 'number' | 'boolean';
 }
 
-export interface TerminalContext {
-  clearHistory: () => void;
+/**
+ * The context object passed to every command handler, providing APIs
+ * to interact with the terminal.
+ */
+export interface CommandContext {
+  clear: () => void;
   theme: ThemeStyle;
   setTheme: (themeName: string) => ThemeStyle | undefined;
   availableThemes: string[];
-  registry: CommandRegistry;
+  getAllCommands: () => Command[];
+  getCommand: (name: string) => Command | undefined;
 }
 
 export type CommandHandler = (
     args: Record<string, any>,
-    context: TerminalContext
+    context: CommandContext
 ) => React.ReactNode;
 
 export interface Command {
