@@ -1,0 +1,5 @@
+{
+  "name": "Terminus: A React TUI Framework",
+  "description": "An extensible framework for building real-time, interactive terminal-based applications in React. This is a foundational implementation showcasing command parsing, state management, and a TUI rendering engine.",
+  "requestFramePermissions": []
+}
