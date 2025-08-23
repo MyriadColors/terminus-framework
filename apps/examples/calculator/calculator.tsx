@@ -1,3 +1,5 @@
+// This is the example calculator app
+
 import { Command, CommandResult } from "@/types";
 
 // Helper function to validate and parse numbers
